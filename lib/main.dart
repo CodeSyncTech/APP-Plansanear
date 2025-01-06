@@ -1,7 +1,4 @@
-import 'dart:math';
-
-import 'custom_button.dart';
-import 'singleton.dart';
+import 'package:Plansanear/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 
@@ -33,7 +30,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
           gradient: LinearGradient(
             colors: [
               Color(0xFF00B3CC), // Azul ciano mais claro
-              Color(0xFF004466), // Azul profundo mai s escuro
+              Color(0xFF004466), // Azul profundo mais escuro
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -41,16 +38,13 @@ class _BottomNavBarState extends State<BottomNavBar> {
         ),
         child: Column(
           children: [
-            // AppBar personalizado com conteúdo centralizado
             Container(
-              padding:
-                  const EdgeInsets.only(top: 40), // Margem para evitar corte
+              padding: const EdgeInsets.only(top: 40),
               child: AppBar(
-                toolbarHeight: 50, // Altura personalizada para o AppBar
+                toolbarHeight: 50,
                 flexibleSpace: Center(
-                  // Centraliza o conteúdo no eixo principal
                   child: Row(
-                    mainAxisSize: MainAxisSize.min, // Centraliza o Row em si
+                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Image.asset(
@@ -59,12 +53,20 @@ class _BottomNavBarState extends State<BottomNavBar> {
                         fit: BoxFit.cover,
                       ),
                       const SizedBox(width: 10),
-                      const BorderedText(
-                        text: ' MENU',
-                        fontSize: 44,
-                        borderColor: Color(0xFF004466), // Cor da borda
-                        textColor: Color(0xFFD2E48E), // Cor do texto
-                      )
+                      const Text(
+                        'MENU',
+                        style: TextStyle(
+                          fontSize: 44,
+                          color: Color(0xFFD2E48E),
+                          shadows: [
+                            Shadow(
+                              color: Color(0xFF004466),
+                              offset: Offset(1, 1),
+                              blurRadius: 2,
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -102,6 +104,66 @@ class _BottomNavBarState extends State<BottomNavBar> {
   }
 }
 
+class ListPage extends StatelessWidget {
+  const ListPage({super.key});
+
+  void _showPopup(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Selecione um estado"),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView(
+              children: [
+                ListTile(
+                  leading: Image.asset('assets/ico_pesquisa.png', width: 40),
+                  title: const Text("Rio de Janeiro"),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: Image.asset('assets/pernambuco.png', width: 40),
+                  title: const Text("Pernambuco"),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: Image.asset('assets/ico_pesquisa.png', width: 40),
+                  title: const Text("Bahia"),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: CustomButton2(
+        imagePath: 'assets/ico_pesquisa.png',
+        label: 'PESQUISA DE SATISFAÇÃO',
+        backgroundColor: const Color(0xFF1E90FF),
+        textColor: const Color(0xFFD2E48E),
+        outlineColor: const Color.fromARGB(255, 0, 0, 0),
+        outlineWidth: 2.0,
+        onPressed: () {
+          _showPopup(context);
+        },
+      ),
+    );
+  }
+}
+
 class AddPage extends StatelessWidget {
   const AddPage({super.key});
 
@@ -111,111 +173,6 @@ class AddPage extends StatelessWidget {
       child: Text(
         'Em manutenção',
         style: TextStyle(fontSize: 30, color: Colors.white),
-      ),
-    );
-  }
-}
-
-class ListPage extends StatelessWidget {
-  const ListPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 40),
-            CustomButton2(
-              imagePath: 'assets/ico_pesquisa.png',
-              label: 'PESQUISA DE SATISFAÇÃO',
-              backgroundColor: const Color(0xFF1E90FF),
-              textColor: const Color(0xFFD2E48E),
-              outlineColor: const Color.fromARGB(255, 0, 0, 0),
-              outlineWidth: 2.0,
-              onPressed: () {
-                MeuSingleton.instance.zerarVetor();
-              },
-            ),
-            CustomButton(
-              imagePath: 'assets/ico_presenca.png',
-              label: 'LISTA DE PRESENÇA',
-              backgroundColor: const Color(0xFF4682B4),
-              textColor: const Color(0xFFD2E48E),
-              outlineColor: const Color.fromARGB(255, 0, 0, 0),
-              outlineWidth: 2.0,
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Em manutenção',
-                      textAlign: TextAlign.center,
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              },
-            ),
-            CustomButton2(
-              imagePath: 'assets/ico_update.png',
-              label: 'OUTROS',
-              backgroundColor: const Color(0xFF1E90FF),
-              textColor: const Color(0xFFD2E48E),
-              outlineColor: const Color.fromARGB(255, 0, 0, 0),
-              outlineWidth: 2.0,
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Em manutenção',
-                      textAlign: TextAlign.center,
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              },
-            ),
-            CustomButton2(
-              imagePath: 'assets/ico_update.png',
-              label: 'OUTROS',
-              backgroundColor: const Color(0xFF1E90FF),
-              textColor: const Color(0xFFD2E48E),
-              outlineColor: const Color.fromARGB(255, 0, 0, 0),
-              outlineWidth: 2.0,
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Em manutenção',
-                      textAlign: TextAlign.center,
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              },
-            ),
-            CustomButton2(
-              imagePath: 'assets/ico_update.png',
-              label: 'OUTROS',
-              backgroundColor: const Color(0xFF1E90FF),
-              textColor: const Color(0xFFD2E48E),
-              outlineColor: const Color.fromARGB(255, 0, 0, 0),
-              outlineWidth: 2.0,
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Em manutenção',
-                      textAlign: TextAlign.center,
-                    ),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
       ),
     );
   }
