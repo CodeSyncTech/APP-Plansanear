@@ -100,9 +100,11 @@ class _AuthScreenState extends State<AuthScreen> {
               children: <Widget>[
                 // Para exemplificar, você pode colocar imagens diferentes
                 // dependendo se é login ou registro
+
                 _isLogin
-                    ? Image.network("https://placehold.co/600x400.png")
-                    : Image.network("https://placehold.co/600x400.png"),
+                    ? Image.asset('assets/ze_planinho2.png', height: 150)
+                    : Image.asset('assets/ze_planinho2.png', height: 150),
+
                 const SizedBox(height: 20),
 
                 /// Caso seja registro, exibimos os campos adicionais
