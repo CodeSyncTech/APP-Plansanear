@@ -14,12 +14,33 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int? _accountLevel;
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserAccountLevel();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _buildBody(context),
+      body: _accountLevel == null
+          ? const Center(child: CircularProgressIndicator())
+          : _buildBody(context),
     );
+  }
+
+  Future<void> _fetchUserAccountLevel() async {
+    if (widget.user == null) return;
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.user!.uid)
+        .get();
+    if (doc.exists) {
+      final data = doc.data() as Map<String, dynamic>;
+      setState(() {
+        _accountLevel = data['nivelConta'] ?? 2;
+      });
+    }
   }
 
   Widget _buildBody(BuildContext context) {
@@ -357,12 +378,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
 // Mantenha os widgets _InfoCard, UserInfoItem e _ErrorInfo do código anterior
 
-class _InfoCard extends StatelessWidget {
+class _InfoCard extends StatefulWidget {
   final String title;
   final List<Widget> children;
 
   const _InfoCard({required this.title, required this.children});
 
+  @override
+  State<_InfoCard> createState() => _InfoCardState();
+}
+
+class _InfoCardState extends State<_InfoCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -373,20 +399,14 @@ class _InfoCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              title,
+              widget.title,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.blue.shade800,
                   ),
             ),
             const Divider(height: 30),
-            ...children,
-            _UserListItem(
-              userData: {},
-              docId: '',
-              onEdit: () {},
-              onDelete: () {},
-            ),
+            ...widget.children,
           ],
         ),
       ),
