@@ -33,6 +33,8 @@ class _AuthScreenState extends State<AuthScreen> {
   final AuthController _authController = AuthController();
 
   bool _isLogin = true;
+
+  //(FirebaseAuth.instance.currentUser != null);
   bool _passwordVisible = false;
 
   void _toggleFormType() {
@@ -68,11 +70,17 @@ class _AuthScreenState extends State<AuthScreen> {
         }
 
         // Após login ou registro, navegue para a HomeScreen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => BottomNavBar(),
-          ),
-        );
+        if (_isLogin) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => BottomNavBar(),
+            ),
+          );
+        } else {
+          print(
+              "Conta atual: ${userCredential.user?.displayName} - ${userCredential.user?.email}");
+          Navigator.of(context).pop();
+        }
       } on FirebaseAuthException catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("Erro: ${e.message}"),
@@ -90,7 +98,7 @@ class _AuthScreenState extends State<AuthScreen> {
       await launchUrl(Uri.parse(numeroWhatsapp));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Erro: Nao foi poss vel abrir o WhatsApp"),
+        content: Text("Erro: Nao foi possível abrir o WhatsApp"),
         backgroundColor: Colors.red,
       ));
     }
@@ -316,5 +324,230 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
       ),
     );
+  }
+}
+
+class AdminCreateAccountScreen extends StatefulWidget {
+  const AdminCreateAccountScreen({super.key});
+
+  @override
+  State<AdminCreateAccountScreen> createState() =>
+      _AdminCreateAccountScreenState();
+}
+
+class _AdminCreateAccountScreenState extends State<AdminCreateAccountScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final AuthController _authController = AuthController();
+
+  // Todos os controllers necessários
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passController = TextEditingController();
+  final TextEditingController _telController = TextEditingController();
+  final TextEditingController _municipioController = TextEditingController();
+  final TextEditingController _cargoController = TextEditingController();
+  final TextEditingController _cpfController = TextEditingController();
+
+  int _selectedNivelConta = 3;
+  final List<int> _opcoesNivel = [1, 2, 3]; // Níveis administrativos
+  bool _passwordVisible = false;
+
+  Future<void> _submit() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      try {
+        await _authController.handleSignUp(
+          name: _nameController.text,
+          email: _emailController.text,
+          tel: _telController.text,
+          password: _passController.text,
+          municipio: _municipioController.text,
+          cargo: _cargoController.text,
+          cpf: _cpfController.text,
+          nivelConta: _selectedNivelConta,
+          currentUser: FirebaseAuth.instance.currentUser,
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Conta administrativa criada com sucesso!')),
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Criar Conta Administrativa'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nome Completo',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
+                ),
+                validator: (value) =>
+                    value!.isEmpty ? 'Campo obrigatório' : null,
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, insira um email';
+                  }
+                  if (!value.contains('@')) {
+                    return 'Email inválido';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _passController,
+                obscureText: !_passwordVisible,
+                decoration: InputDecoration(
+                  labelText: 'Senha',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(_passwordVisible
+                        ? Icons.visibility
+                        : Icons.visibility_off),
+                    onPressed: () {
+                      setState(() {
+                        _passwordVisible = !_passwordVisible;
+                      });
+                    },
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, insira uma senha';
+                  }
+                  if (value.length < 6) {
+                    return 'Senha deve ter pelo menos 6 caracteres';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _municipioController,
+                decoration: const InputDecoration(
+                  labelText: 'Município',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.location_city),
+                ),
+                validator: (value) =>
+                    value!.isEmpty ? 'Campo obrigatório' : null,
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _cargoController,
+                decoration: const InputDecoration(
+                  labelText: 'Cargo',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.work),
+                ),
+                validator: (value) =>
+                    value!.isEmpty ? 'Campo obrigatório' : null,
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _cpfController,
+                decoration: const InputDecoration(
+                  labelText: 'CPF',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.credit_card),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Campo obrigatório';
+                  }
+                  // Adicione validação de CPF aqui se necessário
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              IntlPhoneField(
+                decoration: const InputDecoration(
+                  labelText: 'Telefone',
+                  border: OutlineInputBorder(),
+                ),
+                initialCountryCode: 'BR',
+                onChanged: (phone) {
+                  _telController.text = phone.completeNumber;
+                },
+                validator: (value) =>
+                    value == null ? 'Campo obrigatório' : null,
+              ),
+              const SizedBox(height: 20),
+              DropdownButtonFormField<int>(
+                value: _selectedNivelConta,
+                decoration: const InputDecoration(
+                  labelText: 'Nível de Acesso',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.security),
+                ),
+                items: _opcoesNivel
+                    .map((level) => DropdownMenuItem(
+                          value: level,
+                          child:
+                              Text('Nível $level ${_getNivelDescricao(level)}'),
+                        ))
+                    .toList(),
+                onChanged: (value) =>
+                    setState(() => _selectedNivelConta = value!),
+                validator: (value) =>
+                    value == null ? 'Selecione um nível' : null,
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: _submit,
+                child: const Text('Criar Conta Administrativa'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getNivelDescricao(int nivel) {
+    switch (nivel) {
+      case 1:
+        return '(Super Admin)';
+      case 2:
+        return '(Admin Municipal)';
+      case 3:
+        return '(Admin Setorial)';
+      default:
+        return '';
+    }
   }
 }

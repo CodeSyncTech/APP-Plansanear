@@ -77,7 +77,8 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => AuthScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => AdminCreateAccountScreen()),
                 );
               },
             ),
