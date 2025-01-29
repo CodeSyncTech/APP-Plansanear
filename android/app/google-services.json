@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "621812118549",
+    "project_id": "plansanearapp",
+    "storage_bucket": "plansanearapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:621812118549:android:04a10df339d5ece0f3ca1c",
+        "android_client_info": {
+          "package_name": "com.br.app.plansanearapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByKp1pGvh_-T8E3Tco0tuzUK6VNWTZR_8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:621812118549:android:cc787201931a3b68f3ca1c",
+        "android_client_info": {
+          "package_name": "com.example.loginfirebasebereu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByKp1pGvh_-T8E3Tco0tuzUK6VNWTZR_8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

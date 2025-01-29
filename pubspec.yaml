@@ -2,7 +2,7 @@ name: Plansanear
 description: "Um aplicativo para apoio ao plansanear"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -37,8 +37,26 @@ dependencies:
   curved_navigation_bar: ^1.0.6
   flutter_native_splash: ^2.4.4
   flutter_launcher_icons: ^0.14.2
-
-
+  intro_screen_onboarding_flutter: ^1.0.0
+  shared_preferences: ^2.3.5
+  elegant_notification: ^2.4.1
+  toastification: ^2.3.0
+  lottie: ^3.3.0
+  google_fonts: ^6.2.1
+  firebase_core: ^3.10.0
+  firebase_auth: ^5.4.0
+  intl_phone_field: ^3.2.0
+  cloud_firestore: ^5.6.1
+  flutter_animate: ^4.5.2
+  location: ^8.0.0
+  camera: ^0.11.1
+  image: ^4.5.2
+  geolocator: ^13.0.2
+  image_gallery_saver_plus: ^3.0.5
+  photo_view: ^0.15.0
+  image_picker: ^1.1.2
+  watermark_unique: ^1.0.8
+  image_watermark: ^0.1.0
 
 flutter_native_splash:
   color: "#FFFFFF"
@@ -69,7 +87,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -77,7 +94,9 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-  - assets/
+    - assets/
+    - assets/bandeiras/
+    - assets/capaProdutos/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

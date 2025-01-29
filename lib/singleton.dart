@@ -9,25 +9,28 @@ class MeuSingleton {
   static MeuSingleton get instance => _instance;
 
   // A variável que é um vetor (lista)
-  List<String> meuVetor = [];
+  List<String> respostasSatisfacao = [];
+
+  // A variável que é um vetor (lista)
+  List<String> configSatisfacao = [];
 
   // Variável booleana auxiliar
   bool flagPodeEnviar = false;
 
   // Método para adicionar um item ao vetor
   void adicionarItem(String item) {
-    meuVetor.add(item);
+    respostasSatisfacao.add(item);
     // Aqui você pode fazer algo com flagAuxiliar, se precisar
   }
 
   // Método para obter o vetor completo
   List<String> obterVetor() {
-    return meuVetor;
+    return respostasSatisfacao;
   }
 
   // Método para "zerar" o vetor
   void zerarVetor() {
-    meuVetor.clear();
+    respostasSatisfacao.clear();
   }
 
   // Método para definir a flag auxiliar
