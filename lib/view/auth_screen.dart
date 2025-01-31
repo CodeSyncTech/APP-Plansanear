@@ -1,6 +1,7 @@
 import 'package:Plansanear/main.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../view/home.dart';
@@ -71,11 +72,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
         // Após login ou registro, navegue para a HomeScreen
         if (_isLogin) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => BottomNavBar(),
-            ),
-          );
+          context.go('/home'); // Use o caminho da sua tela inicial
         } else {
           print(
               "Conta atual: ${userCredential.user?.displayName} - ${userCredential.user?.email}");

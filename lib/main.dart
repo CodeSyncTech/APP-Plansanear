@@ -1,7 +1,8 @@
-import 'package:Plansanear/camera.dart';
+import 'package:Plansanear/lista_presenca.dart';
 import 'package:Plansanear/custom_button.dart';
 import 'package:Plansanear/onboarding.dart';
 import 'package:Plansanear/pesquisaSatisfacao.dart';
+import 'package:Plansanear/router.dart';
 import 'package:Plansanear/singleton.dart';
 
 import 'package:Plansanear/view/auth_screen.dart';
@@ -17,11 +18,32 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
 
-  runApp(MaterialApp(home: AuthScreen()));
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    runApp(const MyApp());
+  } catch (e) {
+    print("Erro ao inicializar Firebase: $e");
+  }
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      routerConfig: router,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        inputDecorationTheme: const InputDecorationTheme(
+          border: OutlineInputBorder(),
+        ),
+      ),
+    );
+  }
 }
 
 class BottomNavBar extends StatefulWidget {
@@ -44,7 +66,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
 
     // Aqui já é seguro acessar métodos de instância
     _pages = [
-      ListPage(),
+      CriarFormularioScreen(),
       const Produtos(),
       HomeScreen(_currentUser), // Agora funciona
     ];
@@ -698,6 +720,7 @@ class ListPage extends StatelessWidget {
             outlineColor: const Color.fromARGB(255, 0, 0, 0),
             outlineWidth: 2.0,
             onPressed: () {
+              CriarFormularioScreen();
               /*
               toastification.show(
                 context: context, // optional if you use ToastificationWrapper
