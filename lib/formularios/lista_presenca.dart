@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 
 // 1. Configuração do Firestore Service
 
@@ -114,34 +116,66 @@ class _CriarFormularioScreenState extends State<CriarFormularioScreen> {
         'estado': _estadoSelecionado,
       });
 
-      showDialog(
+      showModalBottomSheet(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Formulário Criado!'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Link: $link'),
-              SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: link));
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Link copiado para a área de transferência'),
-                  ));
-                },
-                icon: const Icon(Icons.content_copy),
-                label: const Text('Copiar Link'),
-              ),
-            ],
-          ),
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
+        builder: (context) {
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Formulário Criado!',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Link: $link'),
+                    const SizedBox(height: 16),
+                    QrImageView(
+                      data: link,
+                      version: QrVersions.auto,
+                      size: 200.0,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: link));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Link copiado para a área de transferência'),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.content_copy),
+                      label: const Text('Copiar Link'),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Share.share(link, subject: 'Formulário Criado!');
+                      },
+                      icon: const Icon(Icons.share),
+                      label: const Text('Compartilhar'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       );
     }
   }
-
-  late AnimationController _controller;
-  late Animation<double> _animation;
 
   @override
   void initState() {
@@ -150,7 +184,6 @@ class _CriarFormularioScreenState extends State<CriarFormularioScreen> {
 
   @override
   void dispose() {
-    _controller.dispose();
     super.dispose();
   }
 
@@ -176,61 +209,72 @@ class _CriarFormularioScreenState extends State<CriarFormularioScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF00B3CC), // Azul ciano mais claro
-              Color(0xFF004466), // Azul profundo mais escuro
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.all(20),
+      elevation: 0,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 20,
+              spreadRadius: 2,
+            )
+          ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Card(
-            elevation: 10,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: const LinearGradient(
-                  colors: [Colors.white, Color(0xFFE3F2FD)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(25),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  children: [
+                    Align(
+                      alignment: Alignment.center,
+                      child: Column(
+                        children: [
+                          const Icon(Icons.assignment_add,
+                              size: 50, color: Color(0xFF2575FC)),
+                          const SizedBox(height: 10),
+                          Text('Criar Novo Formulário',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall
+                                  ?.copyWith(
+                                      color: const Color(0xFF2C3E50),
+                                      fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: IconButton(
+                        icon: Icon(Icons.close, color: Colors.grey[600]),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              padding: const EdgeInsets.all(25),
-              child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
+                const SizedBox(height: 25),
+                Form(
+                  key: _formKey,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.assignment_add,
-                          size: 50, color: Color(0xFF2575FC)),
-                      const SizedBox(height: 20),
-                      Text('Criar Novo Formulário',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(
-                                  color: const Color(0xFF2C3E50),
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.2)),
-                      const SizedBox(height: 30),
                       _buildDecoratedDropdown(
                         'Estado',
                         DropdownButtonFormField<String>(
                           isExpanded: true,
                           value: _estadoSelecionado,
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.zero,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            contentPadding: EdgeInsets.all(9),
                           ),
                           items: estados.map((String estado) {
                             return DropdownMenuItem<String>(
@@ -272,15 +316,17 @@ class _CriarFormularioScreenState extends State<CriarFormularioScreen> {
                           },
                         ),
                       ),
-                      const SizedBox(height: 25),
+                      const SizedBox(height: 20),
                       _buildDecoratedDropdown(
                         'Município',
                         DropdownButtonFormField<String>(
                           isExpanded: true,
                           value: _municipioSelecionado,
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.zero,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            contentPadding: EdgeInsets.all(9),
                             hintText: 'Selecione um município',
                             hintStyle: TextStyle(color: Colors.grey),
                           ),
@@ -300,42 +346,32 @@ class _CriarFormularioScreenState extends State<CriarFormularioScreen> {
                               value == null ? 'Selecione um município' : null,
                         ),
                       ),
-                      const SizedBox(height: 35),
+                      const SizedBox(height: 30),
                       SizedBox(
                         width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: _submitForm,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            _submitForm();
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2575FC),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            elevation: 5,
-                            shadowColor:
-                                const Color(0xFF2575FC).withOpacity(0.4),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.create_new_folder_rounded,
-                                  color: Colors.white),
-                              SizedBox(width: 10),
-                              Text('GERAR FORMULÁRIO',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1.1,
-                                      color: Colors.white)),
-                            ],
-                          ),
+                          icon: const Icon(Icons.create, color: Colors.white),
+                          label: const Text('GERAR FORMULÁRIO',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16)),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
+              ],
             ),
           ),
         ),
@@ -343,7 +379,6 @@ class _CriarFormularioScreenState extends State<CriarFormularioScreen> {
     );
   }
 }
-
 // ... (mantido igual o original)
 
 // 3. Tela de Resposta do Formulário (Adicionada)

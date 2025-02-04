@@ -1,10 +1,8 @@
-import 'package:Plansanear/main.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../view/home.dart';
 import '../controller/auth_controller.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -14,7 +12,7 @@ class AuthScreen extends StatefulWidget {
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> {
+class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   /// Controllers para TODOS os campos
@@ -22,6 +20,7 @@ class _AuthScreenState extends State<AuthScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
   final TextEditingController _telController = TextEditingController();
+  final TextEditingController _estadoController = TextEditingController();
   final TextEditingController _municipioController = TextEditingController();
   final TextEditingController _cargoController = TextEditingController();
   final TextEditingController _cpfController = TextEditingController();
@@ -64,6 +63,7 @@ class _AuthScreenState extends State<AuthScreen> {
             tel: _telController.text,
             password: _passController.text,
             municipio: _municipioController.text,
+            estado: _estadoController.text,
             cargo: _cargoController.text,
             cpf: _cpfController.text,
             nivelConta: _selectedNivelConta, // Agora seguro
@@ -79,11 +79,34 @@ class _AuthScreenState extends State<AuthScreen> {
           Navigator.of(context).pop();
         }
       } on FirebaseAuthException catch (e) {
+        final errorMessage = _getErrorMessage(e);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("Erro: ${e.message}"),
+          content: Text("Erro:  $errorMessage"),
           backgroundColor: Colors.red,
         ));
       }
+    }
+  }
+
+  String _getErrorMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-credential':
+        return 'Credencial inválida. Por favor, tente novamente.';
+      case 'user-disabled':
+        return 'Este usuário foi desabilitado.';
+      case 'user-not-found':
+        return 'Usuário não encontrado. Verifique seu email.';
+      case 'wrong-password':
+        return 'Senha incorreta. Tente novamente.';
+      case 'email-already-in-use':
+        return 'Este email já está sendo usado por outra conta.';
+      case 'operation-not-allowed':
+        return 'Operação não permitida. Entre em contato com o suporte.';
+      case 'weak-password':
+        return 'Senha fraca. Por favor, escolha uma senha mais forte.';
+      // Você pode adicionar mais casos conforme necessário.
+      default:
+        return 'Ocorreu um erro inesperado. Tente novamente mais tarde.';
     }
   }
 
@@ -101,225 +124,323 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  bool _isLoading = false;
+  AnimationController? _buttonController;
+  AnimationController? _borderAnimationController;
+
+// Inicialize os controladores no initState
   @override
+  void initState() {
+    super.initState();
+    _buttonController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _borderAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _buttonController?.dispose();
+    _borderAnimationController?.dispose();
+    super.dispose();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  // Para exemplificar, você pode colocar imagens diferentes
-                  // dependendo se é login ou registro
-
-                  _isLogin
-                      ? Image.asset('assets/ze_planinho2.png', height: 150)
-                      : Image.asset('assets/ze_planinho2.png', height: 150),
-
-                  const SizedBox(height: 20),
-
-                  /// Caso seja registro, exibimos os campos adicionais
-                  if (!_isLogin) ...[
-                    // Campo para nome
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: "Nome",
-                        prefixIcon: Icon(Icons.person),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Por favor, insira seu nome";
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Campo para município
-                    TextFormField(
-                      controller: _municipioController,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: "Município",
-                        prefixIcon: Icon(Icons.location_city),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Por favor, insira seu município";
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Campo para cargo
-                    TextFormField(
-                      controller: _cargoController,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: "Cargo",
-                        prefixIcon: Icon(Icons.work),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Por favor, insira seu cargo";
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Campo para CPF
-                    TextFormField(
-                      controller: _cpfController,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: "CPF",
-                        prefixIcon: Icon(Icons.account_box),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Por favor, insira seu CPF";
-                        }
-                        // Aqui você pode colocar validação de CPF, se desejar
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Campo para nível da conta
-                    DropdownButtonFormField<int>(
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: "Nível da Conta",
-                        prefixIcon: Icon(Icons.stars),
-                      ),
-                      value: _selectedNivelConta, // valor inicial
-                      items: _opcoesNivel.map((int valor) {
-                        return DropdownMenuItem<int>(
-                          value: valor,
-                          child: Text(valor.toString()),
-                        );
-                      }).toList(),
-                      onChanged: (novoValor) {
-                        setState(() {
-                          _selectedNivelConta = novoValor!;
-                          print("$_selectedNivelConta");
-                        });
-                      },
-                      // Validação (opcional):
-                      validator: (valor) {
-                        if (valor == null) {
-                          return "Por favor, selecione o nível da conta";
-                        }
-                        return null;
-                      },
-                    ),
-
-                    const SizedBox(height: 20),
-                    IntlPhoneField(
-                      decoration: const InputDecoration(
-                        labelText: 'Telefone',
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF00B3CC),
+              Color(0xFF004466),
+            ],
+            stops: [0.2, 0.8],
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: AnimatedBuilder(
+                animation: _borderAnimationController!,
+                builder: (context, child) {
+                  return Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      gradient: SweepGradient(
+                        colors: [
+                          const Color(0xFF00B3CC).withOpacity(0.5),
+                          Colors.white.withOpacity(0.2),
+                          const Color(0xFF004466).withOpacity(0.5),
+                        ],
+                        stops: const [0.2, 0.5, 0.8],
+                        transform: GradientRotation(
+                          _borderAnimationController!.value * 6.2832,
                         ),
                       ),
-                      initialCountryCode: 'BR',
-                      onChanged: (phone) {
-                        _telController.text = phone.completeNumber;
-                      },
                     ),
-                    const SizedBox(height: 20),
-                  ],
-
-                  // Campo para telefone (IntlPhoneField)
-
-                  // Campo para email (sempre exibido, seja login ou registro)
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: "Email",
-                      prefixIcon: Icon(Icons.email),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 500),
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.97),
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 25,
+                            offset: const Offset(0, 15),
+                          ),
+                        ],
+                      ),
+                      child: child,
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Por favor, insira seu email";
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Campo para senha (sempre exibido, seja login ou registro)
-                  TextFormField(
-                    controller: _passController,
-                    obscureText: !_passwordVisible,
-                    decoration: InputDecoration(
-                      border: const OutlineInputBorder(),
-                      labelText: "Senha",
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _passwordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off,
+                  );
+                },
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 400),
+                        child: _isLogin
+                            ? Hero(
+                                tag: 'logo',
+                                child: Image.asset('assets/ze_planinho2.png',
+                                    height: 150),
+                              )
+                            : Transform.rotate(
+                                angle: 0.02,
+                                child: Hero(
+                                  tag: 'logo',
+                                  child: Image.asset('assets/ze_planinho2.png',
+                                      height: 150),
+                                ),
+                              ),
+                      ),
+                      const SizedBox(height: 30),
+                      if (!_isLogin) ...[
+                        _buildTextField(
+                          controller: _nameController,
+                          label: "Nome",
+                          icon: Icons.person_outline,
+                          iconColor: const Color(0xFF00B3CC),
+                          validator: (value) =>
+                              value!.isEmpty ? "Insira seu nome" : null,
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _passwordVisible = !_passwordVisible;
-                          });
-                        },
+                        const SizedBox(height: 15),
+                      ],
+                      // Campo de Email
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        style: TextStyle(color: Colors.grey[800]),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white,
+                          labelText: "Email",
+                          labelStyle:
+                              TextStyle(color: Colors.grey[600], fontSize: 15),
+                          prefixIcon: Icon(Icons.email_outlined,
+                              color: const Color(0xFF00B3CC)),
+                          border: _inputBorder(),
+                          enabledBorder: _inputBorder(),
+                          focusedBorder: _inputBorder(
+                              color: const Color(0xFF00B3CC), width: 2),
+                        ),
+                        validator: (value) =>
+                            value!.contains('@') ? null : "Email inválido",
                       ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Por favor, insira sua senha";
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 30),
-
-                  // Botão de enviar (Login ou Registrar)
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.deepPurple,
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
+                      const SizedBox(height: 15),
+                      // Campo de Senha
+                      TextFormField(
+                        controller: _passController,
+                        obscureText: !_passwordVisible,
+                        style: TextStyle(color: Colors.grey[800]),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white,
+                          labelText: "Senha",
+                          labelStyle:
+                              TextStyle(color: Colors.grey[600], fontSize: 15),
+                          prefixIcon: Icon(Icons.lock_outline,
+                              color: const Color(0xFF00B3CC)),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _passwordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: Colors.grey[600],
+                            ),
+                            onPressed: () => setState(
+                                () => _passwordVisible = !_passwordVisible),
+                          ),
+                          border: _inputBorder(),
+                          enabledBorder: _inputBorder(),
+                          focusedBorder: _inputBorder(
+                              color: const Color(0xFF00B3CC), width: 2),
+                        ),
                       ),
-                    ),
-                    onPressed: _submit,
-                    child: Text(_isLogin ? "Login" : "Registrar"),
-                  ),
+                      const SizedBox(height: 30),
+                      // Botão Principal
+                      ScaleTransition(
+                        scale: Tween(begin: 1.0, end: 0.95).animate(
+                          CurvedAnimation(
+                            parent: _buttonController!,
+                            curve: Curves.easeOut,
+                          ),
+                        ),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          height: 52,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            gradient: LinearGradient(
+                              colors: [
+                                _isLoading
+                                    ? const Color(0xFF007799)
+                                    : const Color(0xFF00B3CC),
+                                const Color(0xFF007799)
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: _isLoading
+                                ? []
+                                : [
+                                    BoxShadow(
+                                      color: const Color(0xFF00B3CC)
+                                          .withOpacity(0.3),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
+                          ),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: _isLoading
+                                ? null
+                                : () {
+                                    _buttonController!.forward().then(
+                                        (_) => _buttonController!.reverse());
+                                    _submit();
+                                  },
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.white),
+                                      ),
+                                    )
+                                  : Text(
+                                      _isLogin
+                                          ? "ACESSAR PLATAFORMA"
+                                          : "CRIAR CONTA AGORA",
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
 
-                  const SizedBox(height: 20),
-
-                  // Botão de trocar o formulário
-                  TextButton(
-                    onPressed: _abrirWhatsapp,
-                    child: Text(
-                      "Problemas para conectar? Fale conosco",
-                      style: const TextStyle(color: Colors.deepPurple),
-                    ),
+                      // Link de Ajuda
+                      TextButton(
+                        onPressed: _abrirWhatsapp,
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFF004466),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: RichText(
+                          text: TextSpan(
+                            style: TextStyle(
+                              color: const Color(0xFF004466),
+                              fontSize: 13,
+                            ),
+                            children: const [
+                              TextSpan(text: "Esqueceu a senha? "),
+                              TextSpan(
+                                text: "fale conosco",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+// Função auxiliar para bordas dos inputs
+  InputBorder _inputBorder({Color color = Colors.grey, double width = 1.5}) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: BorderSide(
+        color: color.withOpacity(0.4),
+        width: width,
+      ),
+    );
+  }
+
+// Widget reutilizável para campos de texto
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required Color iconColor,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      style: TextStyle(color: Colors.grey[800]),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.grey[600], fontSize: 15),
+        prefixIcon: Icon(icon, color: iconColor),
+        border: _inputBorder(),
+        enabledBorder: _inputBorder(),
+        focusedBorder: _inputBorder(color: iconColor),
+      ),
+      validator: validator,
     );
   }
 }
@@ -342,6 +463,7 @@ class _AdminCreateAccountScreenState extends State<AdminCreateAccountScreen> {
   final TextEditingController _passController = TextEditingController();
   final TextEditingController _telController = TextEditingController();
   final TextEditingController _municipioController = TextEditingController();
+  final TextEditingController _estadoController = TextEditingController();
   final TextEditingController _cargoController = TextEditingController();
   final TextEditingController _cpfController = TextEditingController();
 
@@ -350,30 +472,54 @@ class _AdminCreateAccountScreenState extends State<AdminCreateAccountScreen> {
   bool _passwordVisible = false;
 
   Future<void> _submit() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      try {
-        await _authController.handleSignUp(
-          name: _nameController.text,
-          email: _emailController.text,
-          tel: _telController.text,
-          password: _passController.text,
-          municipio: _municipioController.text,
-          cargo: _cargoController.text,
-          cpf: _cpfController.text,
-          nivelConta: _selectedNivelConta,
-          currentUser: FirebaseAuth.instance.currentUser,
-        );
+    // Retorna imediatamente se o formulário não for válido
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Conta administrativa criada com sucesso!')),
-        );
-        Navigator.pop(context);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: ${e.toString()}')),
-        );
+    try {
+      await _authController.handleSignUp(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        tel: _telController.text.trim(),
+        password: _passController.text,
+        municipio: _municipioController.text.trim(),
+        estado: _estadoController.text.trim(),
+        cargo: _cargoController.text.trim(),
+        cpf: _cpfController.text.trim(),
+        nivelConta: _selectedNivelConta,
+        // Removido currentUser por não ser necessário no cadastro
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Conta administrativa criada com sucesso!'),
+        ),
+      );
+      Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+
+      // Tratamento apenas dos erros mais relevantes para cadastro
+      switch (e.code) {
+        case 'weak-password':
+          errorMessage = 'Senha muito fraca';
+          break;
+        case 'email-already-in-use':
+          errorMessage = 'Email já está em uso';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Email inválido';
+          break;
+        default:
+          errorMessage = 'Erro: ${e.message}';
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro: ${e.toString()}')),
+      );
     }
   }
 
@@ -460,6 +606,17 @@ class _AdminCreateAccountScreenState extends State<AdminCreateAccountScreen> {
               ),
               const SizedBox(height: 20),
               TextFormField(
+                controller: _estadoController,
+                decoration: const InputDecoration(
+                  labelText: 'Estado',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.location_city_rounded),
+                ),
+                validator: (value) =>
+                    value!.isEmpty ? 'Campo obrigatório' : null,
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
                 controller: _cargoController,
                 decoration: const InputDecoration(
                   labelText: 'Cargo',
@@ -538,11 +695,11 @@ class _AdminCreateAccountScreenState extends State<AdminCreateAccountScreen> {
   String _getNivelDescricao(int nivel) {
     switch (nivel) {
       case 1:
-        return '(Super Admin)';
+        return '(Adminstrador Plansanear)';
       case 2:
-        return '(Admin Municipal)';
+        return '(Gestor 1)';
       case 3:
-        return '(Admin Setorial)';
+        return '(Gestor 2)';
       default:
         return '';
     }

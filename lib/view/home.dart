@@ -22,8 +22,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _accountLevel == null
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFF00B3CC), // Azul ciano mais claro
+            Color(0xFF004466), // Azul profundo mais escuro
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
+      child: _accountLevel == null
           ? const Center(child: CircularProgressIndicator())
           : _buildBody(context),
     );
@@ -66,14 +76,16 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         const SizedBox(height: 30),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
               'Painel Administrativo',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
             ),
             IconButton(
-              icon: const Icon(Icons.add, color: Colors.blue),
+              icon: const Icon(Icons.add_circle,
+                  color: Color.fromARGB(255, 0, 0, 0)),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -131,6 +143,8 @@ class _HomeScreenState extends State<HomeScreen> {
         TextEditingController(text: userData['tel']);
     TextEditingController municipioController =
         TextEditingController(text: userData['municipio']);
+    TextEditingController estadoController =
+        TextEditingController(text: userData['estado']);
     TextEditingController cargoController =
         TextEditingController(text: userData['cargo']);
     TextEditingController cpfController =
@@ -144,39 +158,48 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Editar Usuário'),
         content: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Nome'),
-              ),
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(labelText: 'E-mail'),
-              ),
-              TextField(
-                controller: telController,
-                decoration: const InputDecoration(labelText: 'Telefone'),
-              ),
-              TextField(
-                controller: municipioController,
-                decoration: const InputDecoration(labelText: 'Município'),
-              ),
-              TextField(
-                controller: cargoController,
-                decoration: const InputDecoration(labelText: 'Cargo'),
-              ),
-              TextField(
-                controller: cpfController,
-                decoration: const InputDecoration(labelText: 'CPF'),
-              ),
-              TextField(
-                controller: nivelContaController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Nível da Conta'),
-              ),
-            ],
-          ),
+          child: Column(children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Nome'),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(labelText: 'E-mail'),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: telController,
+              decoration: const InputDecoration(labelText: 'Telefone'),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: municipioController,
+              decoration: const InputDecoration(labelText: 'Município'),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: municipioController,
+              decoration: const InputDecoration(labelText: 'Estado'),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: cargoController,
+              decoration: const InputDecoration(labelText: 'Cargo'),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: cpfController,
+              decoration: const InputDecoration(labelText: 'CPF'),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: nivelContaController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Nível da Conta'),
+            ),
+          ]),
         ),
         actions: [
           TextButton(
@@ -190,6 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 'email': emailController.text,
                 'tel': telController.text,
                 'municipio': municipioController.text,
+                'estado': estadoController.text,
                 'cargo': cargoController.text,
                 'cpf': cpfController.text,
 
@@ -280,6 +304,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 value: userData['municipio'] ?? 'Não informado',
               ),
               UserInfoItem(
+                icon: Icons.location_city,
+                label: 'Estado:',
+                value: userData['estado'] ?? 'Não informado',
+              ),
+              UserInfoItem(
                 icon: Icons.phone,
                 label: 'Telefone:',
                 value: userData['tel'] ?? 'Não informado',
@@ -300,11 +329,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildUserHeader() {
     return CircleAvatar(
       radius: 50,
-      backgroundColor: Colors.blue.shade100,
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       child: Icon(
         Icons.person,
         size: 50,
-        color: Colors.blue.shade800,
+        color: const Color.fromARGB(255, 106, 106, 106),
       ),
     );
   }
@@ -522,6 +551,8 @@ class _UserListItem extends StatelessWidget {
             Text('Email: ${userData['email'] ?? 'Não informado'}'),
             Text('Cargo: ${userData['cargo'] ?? 'Não informado'}'),
             Text('Nível: ${userData['nivelConta'] ?? 2}'),
+            Text('Municipio: ${userData['municipio'] ?? 'Não informado'}'),
+            Text('Estado: ${userData['estado'] ?? 'Não informado'}'),
           ],
         ),
         trailing: Row(

@@ -4,50 +4,72 @@ import 'package:google_fonts/google_fonts.dart';
 
 class PesquisaSatisfacao extends StatelessWidget {
   const PesquisaSatisfacao({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize:
-            const Size.fromHeight(150.0), // Define a altura do AppBar
+        preferredSize: const Size.fromHeight(100.0),
         child: AppBar(
-          flexibleSpace: Padding(
-            padding: const EdgeInsets.only(top: 50, left: 10, right: 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Row(
+          elevation: 2,
+          shadowColor: Colors.blue.shade100,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.center, // Centralização principal
+                children: [
+                  // Logo centralizado
+                  Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Flexible(
-                        child: Image.asset(
-                          'assets/logo_plan.png', // Caminho da sua imagem
-                          height:
-                              120, // Ajuste a altura da imagem conforme necessário
-                          fit: BoxFit.contain,
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                      ),
-                      const SizedBox(
-                          width: 10), // Espaço entre a imagem e o texto
-                      Flexible(
-                        child: Text(
-                          'Pesquisa de satisfação',
-                          style: GoogleFonts.aDLaMDisplay(
-                            fontSize: 28,
-                            color: const Color.fromARGB(255, 0, 0, 0),
-                          ),
-                          textAlign: TextAlign.center,
+                        child: Image.asset(
+                          'assets/logo_plan.png',
+                          height: 50,
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+
+                  const SizedBox(width: 20),
+
+                  // Título centralizado verticalmente
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Pesquisa de',
+                        style: GoogleFonts.roboto(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      Text(
+                        'Satisfação',
+                        style: GoogleFonts.roboto(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.blue.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-          backgroundColor: const Color(0xFFB0E0E6),
         ),
       ),
       body: const SatisfactionSurveyForm(),
@@ -175,50 +197,143 @@ class _SatisfactionSurveyFormState extends State<SatisfactionSurveyForm>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWeb = screenWidth > 600;
+
     // Tela de introdução
     if (_currentQuestionIndex == -1) {
-      return Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Pesquisa de Satisfação - ${MeuSingleton.instance.respostasSatisfacao[3] == 'Comitê' ? 'Comitê Executivo e de Coordenação' : 'Encontro Público'} - ${MeuSingleton.instance.respostasSatisfacao[2]} ${MeuSingleton.instance.respostasSatisfacao[1]}',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
+      return Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.indigo.shade700, Colors.purple.shade400],
+          ),
+        ),
+        child: Center(
+          child: Container(
+            constraints:
+                BoxConstraints(maxWidth: isWeb ? 800 : double.infinity),
+            padding: EdgeInsets.symmetric(
+              vertical: isWeb ? 40 : 16,
+              horizontal: isWeb ? 40 : 16,
             ),
-            const SizedBox(height: 16),
-            MeuSingleton.instance.respostasSatisfacao[3] == 'Comitê'
-                ? const Text(
-                    'Agradecemos sua participação nesta pesquisa de satisfação. Seu feedback é essencial para que possamos melhorar continuamente nossos processos e a eficácia do comitê executivo e de coordenação. Suas respostas serão tratadas com confidencialidade e utilizadas exclusivamente para fins de aprimoramento interno.',
-                    style: TextStyle(fontSize: 16),
-                    textAlign: TextAlign.justify,
-                  )
-                : const Text(
-                    'Agradecemos por participar da nossa pesquisa de satisfação. Sua opinião é fundamental para melhorarmos nossos serviços. Por favor, responda às perguntas a seguir com sinceridade.',
-                    style: TextStyle(fontSize: 16),
-                    textAlign: TextAlign.justify,
+            child: AnimatedOpacity(
+              opacity: 1.0,
+              duration: Duration(milliseconds: 500),
+              child: Card(
+                elevation: 10,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(isWeb ? 40.0 : 20.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TweenAnimationBuilder(
+                        tween: Tween<double>(begin: 0, end: 1),
+                        duration: Duration(milliseconds: 500),
+                        builder: (context, double value, child) {
+                          return Transform.scale(
+                            scale: value,
+                            child: child,
+                          );
+                        },
+                        child: Icon(
+                          Icons.assignment_outlined,
+                          size: isWeb ? 80 : 60,
+                          color: Colors.indigo,
+                        ),
+                      ),
+                      SizedBox(height: isWeb ? 30 : 20),
+                      Text(
+                        'Pesquisa de Satisfação - ${MeuSingleton.instance.respostasSatisfacao[3] == 'Comitê' ? 'Comitê Executivo e de Coordenação' : 'Encontro Público'} - ${MeuSingleton.instance.respostasSatisfacao[2]} ${MeuSingleton.instance.respostasSatisfacao[1]}',
+                        style: TextStyle(
+                          fontSize: isWeb ? 26 : 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.indigo.shade900,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: isWeb ? 30 : 20),
+                      Flexible(
+                        child: SingleChildScrollView(
+                          child: Text(
+                            MeuSingleton.instance.respostasSatisfacao[3] ==
+                                    'Comitê'
+                                ? 'Agradecemos sua participação nesta pesquisa de satisfação. Seu feedback é essencial para que possamos melhorar continuamente nossos processos e a eficácia do comitê executivo e de coordenação. Suas respostas serão tratadas com confidencialidade e utilizadas exclusivamente para fins de aprimoramento interno.'
+                                : 'Agradecemos por participar da nossa pesquisa de satisfação. Sua opinião é fundamental para melhorarmos nossos serviços. Por favor, responda às perguntas a seguir com sinceridade.',
+                            style: TextStyle(
+                              fontSize: isWeb ? 18 : 16,
+                              height: 1.5,
+                              color: Colors.grey.shade800,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: isWeb ? 25 : 15),
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: TweenAnimationBuilder(
+                          tween: Tween<double>(begin: 0, end: 1),
+                          duration: Duration(milliseconds: 500),
+                          builder: (context, double value, child) {
+                            return Transform.translate(
+                              offset: Offset(0, 20 * (1 - value)),
+                              child: Opacity(
+                                opacity: value,
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: ElevatedButton(
+                            onPressed: _nextQuestion,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.indigo,
+                              padding: EdgeInsets.symmetric(
+                                vertical: isWeb ? 20 : 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              elevation: 5,
+                              shadowColor: Colors.indigo.withOpacity(0.3),
+                            ),
+                            child: AnimatedSwitcher(
+                              duration: Duration(milliseconds: 300),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Iniciar',
+                                    style: TextStyle(
+                                      fontSize: isWeb ? 20 : 18,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Icon(
+                                    Icons.arrow_forward_rounded,
+                                    size: isWeb ? 24 : 20,
+                                    color: Colors.white,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-            const SizedBox(height: 16),
-            const Text(
-              'Todas as respostas são confidenciais.  Se precisar de mais alguma coisa, estou à disposição!',
-              style: TextStyle(fontSize: 16),
-              textAlign: TextAlign.justify,
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _nextQuestion,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.indigo,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: const Text(
-                'Iniciar',
-                style: TextStyle(fontSize: 18, color: Colors.white),
+                ),
               ),
             ),
-          ],
+          ),
         ),
       );
     }
@@ -228,115 +343,212 @@ class _SatisfactionSurveyFormState extends State<SatisfactionSurveyForm>
     final isAnswerSelected = currentQuestion['isText'] == true
         ? _observations!.isNotEmpty
         : currentQuestion['rating'] != null;
-
     return FadeTransition(
       opacity: _fadeAnimation,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 50),
-              Text(
-                'Pergunta ${_currentQuestionIndex + 1} de ${_questions.length}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.indigo,
-                ),
-              ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 40),
+              // Header com contador
               Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.indigo[50],
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.indigo.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  currentQuestion['question'],
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+                  'Pergunta ${_currentQuestionIndex + 1} de ${_questions.length}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.indigo[800],
+                    letterSpacing: 0.5,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ),
-              const SizedBox(height: 55),
+
+              const SizedBox(height: 32),
+
+              // Card da pergunta
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                      color: Colors.indigo.withOpacity(0.2), width: 1),
+                ),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    currentQuestion['question'],
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.grey[800],
+                      height: 1.3,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 40),
+
+              // Campo de texto ou rating
               if (currentQuestion['isText'] == true)
                 TextField(
-                  onChanged: (value) {
-                    setState(() {
-                      _observations = value;
-                    });
-                  },
+                  onChanged: (value) => setState(() => _observations = value),
                   decoration: InputDecoration(
                     hintText: 'Escreva aqui suas observações...',
+                    hintStyle: TextStyle(color: Colors.grey[500]),
+                    filled: true,
+                    fillColor: Colors.grey[50],
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
                     ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.indigo, width: 1.5),
+                    ),
+                    contentPadding: const EdgeInsets.all(16),
                   ),
                   maxLines: 4,
                 )
               else ...[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      currentQuestion['lowLabel'] ?? "",
-                      style: const TextStyle(
-                        fontSize: 16,
+                // Labels da escala
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        currentQuestion['lowLabel'] ?? "",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    Text(
-                      currentQuestion['highLabel'] ?? "",
-                      style: const TextStyle(
-                        fontSize: 16,
+                      Text(
+                        currentQuestion['highLabel'] ?? "",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 8),
-                _buildRatingQuestion(
-                  selectedRating: currentQuestion['rating'],
-                  onChanged: (int? value) {
-                    setState(() {
-                      _questions[_currentQuestionIndex]['rating'] = value;
-                    });
-                  },
+
+                const SizedBox(height: 12),
+
+                // Rating moderno
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: List.generate(5, (index) {
+                      final ratingValue = index + 1;
+                      return GestureDetector(
+                        onTap: () => setState(() {
+                          _questions[_currentQuestionIndex]['rating'] =
+                              ratingValue;
+                        }),
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          decoration: BoxDecoration(
+                            color: currentQuestion['rating'] == ratingValue
+                                ? _getRatingColor(ratingValue)
+                                : Colors.grey[100],
+                            shape: BoxShape.circle,
+                            border: currentQuestion['rating'] == ratingValue
+                                ? Border.all(
+                                    color: Colors.indigo.withOpacity(0.2),
+                                    width: 2)
+                                : null,
+                          ),
+                          child: Center(
+                            child: Text(
+                              '$ratingValue',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: currentQuestion['rating'] == ratingValue
+                                    ? Colors.white
+                                    : Colors.grey[600],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
                 ),
               ],
-              const SizedBox(height: 24),
+
+              const SizedBox(height: 36),
+
+              // Botões de navegação
               Row(
                 mainAxisAlignment: _currentQuestionIndex > 0
                     ? MainAxisAlignment.spaceBetween
                     : MainAxisAlignment.end,
                 children: [
                   if (_currentQuestionIndex > 0)
-                    ElevatedButton(
+                    OutlinedButton(
                       onPressed: _previousQuestion,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey,
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 28, vertical: 12),
+                        side: BorderSide(color: Colors.indigo),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Voltar',
-                        style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.indigo[800],
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   if (_currentQuestionIndex < _questions.length - 1)
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: ElevatedButton(
-                        onPressed: isAnswerSelected ? _nextQuestion : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.indigo,
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                    ElevatedButton(
+                      onPressed: isAnswerSelected ? _nextQuestion : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 32, vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Text(
-                          'Próxima',
-                          style: TextStyle(color: Colors.white),
+                        elevation: 2,
+                      ),
+                      child: Text(
+                        'Próxima',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -344,12 +556,21 @@ class _SatisfactionSurveyFormState extends State<SatisfactionSurveyForm>
                     ElevatedButton(
                       onPressed: _saveResponses,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        backgroundColor: Colors.teal,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 32, vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        elevation: 2,
                       ),
                       child: const Text(
                         'Enviar Respostas',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                 ],
@@ -361,28 +582,14 @@ class _SatisfactionSurveyFormState extends State<SatisfactionSurveyForm>
     );
   }
 
-  Widget _buildRatingQuestion({
-    required int? selectedRating,
-    required ValueChanged<int?> onChanged,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: List<Widget>.generate(5, (index) {
-        return Row(
-          children: [
-            Radio<int?>(
-              value: index + 1,
-              groupValue: selectedRating,
-              onChanged: onChanged,
-              activeColor: Colors.indigo,
-            ),
-            Text(
-              '${index + 1}',
-              style: const TextStyle(fontSize: 18),
-            ),
-          ],
-        );
-      }),
-    );
+  Color _getRatingColor(int rating) {
+    final hues = [
+      Colors.red[400]!,
+      Colors.orange[400]!,
+      Colors.yellow[600]!,
+      Colors.lightGreen[400]!,
+      Colors.green[400]!
+    ];
+    return hues[rating - 1];
   }
 }
