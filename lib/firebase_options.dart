@@ -63,7 +63,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '621812118549',
     projectId: 'plansanearapp',
     storageBucket: 'plansanearapp.firebasestorage.app',
-    iosBundleId: 'com.br.app.plansanearapp',
+    iosBundleId: 'com.br.app.redeplansanea',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -72,7 +72,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '621812118549',
     projectId: 'plansanearapp',
     storageBucket: 'plansanearapp.firebasestorage.app',
-    iosBundleId: 'com.br.app.plansanearapp',
+    iosBundleId: 'com.br.app.redeplansanea',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

@@ -10,8 +10,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
 
-class FirestoreService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+class FirestoreServiceComite {
+  final FirebaseFirestore _firestoreComite = FirebaseFirestore.instance;
   final Uuid _uuid = Uuid(); // Instância do UUID
 
   /// Gera um ID único usando UUID v4
@@ -21,42 +21,44 @@ class FirestoreService {
   }
 
   /// Cria um novo formulário no Firestore com um ID aleatório
-  Future<void> createForm(Map<String, dynamic> formData) async {
+  Future<void> createFormComite(Map<String, dynamic> formData) async {
     DateTime now = DateTime.now();
     formData['dataCriacao'] = "${now.day}/${now.month}/${now.year}";
     formData['horaCriacao'] =
         "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
 
-    await _firestore
-        .collection('formularios')
+    await _firestoreComite
+        .collection('formulariosComite')
         .doc(formData['idFormulario'])
         .set(formData);
   }
 
   /// Envia uma resposta para um formulário específico com data e hora separadas
-  Future<void> submitResponse(Map<String, dynamic> responseData) async {
+  Future<void> submitResponseComite(Map<String, dynamic> responseData) async {
     DateTime now = DateTime.now();
     responseData['dataResposta'] = "${now.day}/${now.month}/${now.year}";
     responseData['horaResposta'] =
         "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
 
-    await _firestore.collection('respostas').add(responseData);
+    await _firestoreComite.collection('respostasComite').add(responseData);
   }
 }
 
 // 2. Tela de Criação de Formulárioimport 'package:flutter/material.dart';
 
-class CriarFormularioScreen extends StatefulWidget {
-  const CriarFormularioScreen({super.key});
+class CriarFormularioScreenComite extends StatefulWidget {
+  const CriarFormularioScreenComite({super.key});
 
   @override
-  _CriarFormularioScreenState createState() => _CriarFormularioScreenState();
+  _CriarFormularioScreenComiteState createState() =>
+      _CriarFormularioScreenComiteState();
 }
 
-class _CriarFormularioScreenState extends State<CriarFormularioScreen> {
+class _CriarFormularioScreenComiteState
+    extends State<CriarFormularioScreenComite> {
   final _formKey = GlobalKey<FormState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirestoreService _firestoreService = FirestoreService();
+  final FirestoreServiceComite _firestoreService = FirestoreServiceComite();
 
   final estados = ["Rio de Janeiro", "Pernambuco", "Bahia"];
   final municipios = {
@@ -99,16 +101,16 @@ class _CriarFormularioScreenState extends State<CriarFormularioScreen> {
   String? _municipioSelecionado;
 
   String _generateLink(String idFormulario) {
-    return 'http://localhost:55896/#/$idFormulario';
+    return 'http://plansanear/#/$idFormulario';
   }
 
-  Future<void> _submitForm() async {
+  Future<void> _submitFormComite() async {
     if (_formKey.currentState!.validate() && _municipioSelecionado != null) {
       final user = _auth.currentUser!;
       final id = await _firestoreService.generateFormId();
       final link = _generateLink(id);
 
-      await _firestoreService.createForm({
+      await _firestoreService.createFormComite({
         'idFormulario': id,
         'autor': user.displayName ?? user.email!,
         'link': link,
@@ -187,7 +189,7 @@ class _CriarFormularioScreenState extends State<CriarFormularioScreen> {
     super.dispose();
   }
 
-  Widget _buildDecoratedDropdown(String label, Widget child) {
+  Widget _buildDecoratedDropdownComite(String label, Widget child) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
@@ -265,7 +267,7 @@ class _CriarFormularioScreenState extends State<CriarFormularioScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _buildDecoratedDropdown(
+                      _buildDecoratedDropdownComite(
                         'Estado',
                         DropdownButtonFormField<String>(
                           isExpanded: true,
@@ -317,7 +319,7 @@ class _CriarFormularioScreenState extends State<CriarFormularioScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      _buildDecoratedDropdown(
+                      _buildDecoratedDropdownComite(
                         'Município',
                         DropdownButtonFormField<String>(
                           isExpanded: true,
@@ -351,7 +353,7 @@ class _CriarFormularioScreenState extends State<CriarFormularioScreen> {
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            _submitForm();
+                            _submitFormComite();
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2575FC),
@@ -382,22 +384,23 @@ class _CriarFormularioScreenState extends State<CriarFormularioScreen> {
 // ... (mantido igual o original)
 
 // 3. Tela de Resposta do Formulário (Adicionada)
-class ResponderFormularioScreen extends StatefulWidget {
+class ResponderFormularioScreenComite extends StatefulWidget {
   final String idFormulario;
 
-  const ResponderFormularioScreen({
+  const ResponderFormularioScreenComite({
     super.key,
     required this.idFormulario,
   });
 
   @override
-  _ResponderFormularioScreenState createState() =>
-      _ResponderFormularioScreenState();
+  _ResponderFormularioScreenComiteState createState() =>
+      _ResponderFormularioScreenComiteState();
 }
 
-class _ResponderFormularioScreenState extends State<ResponderFormularioScreen> {
+class _ResponderFormularioScreenComiteState
+    extends State<ResponderFormularioScreenComite> {
   final _formKey = GlobalKey<FormState>();
-  final FirestoreService _firestoreService = FirestoreService();
+  final FirestoreServiceComite _firestoreService = FirestoreServiceComite();
 
   // Controladores para os campos de entrada
   final TextEditingController _nomeController = TextEditingController();
@@ -405,6 +408,9 @@ class _ResponderFormularioScreenState extends State<ResponderFormularioScreen> {
   final TextEditingController _vinculoController = TextEditingController();
 
   String _telefoneCompleto = ''; // Para armazenar o telefone formatado
+
+  final List<String> comites = ["Coordenação", "Executivo"];
+  String? _comiteSelecionado;
 
   @override
   void dispose() {
@@ -414,14 +420,14 @@ class _ResponderFormularioScreenState extends State<ResponderFormularioScreen> {
     super.dispose();
   }
 
-  Future<void> _submitResponse() async {
+  Future<void> _submitResponseComite() async {
     if (_formKey.currentState!.validate()) {
-      await _firestoreService.submitResponse({
+      await _firestoreService.submitResponseComite({
         'idFormulario': widget.idFormulario,
         'nomeCompleto': _nomeController.text,
         'telefone': _telefoneCompleto,
-        'vinculo':
-            _vinculoController.text, // Captura o texto digitado pelo usuário
+        'vinculo': _vinculoController.text,
+        'comite': _comiteSelecionado,
       });
 
       showDialog(
@@ -442,7 +448,7 @@ class _ResponderFormularioScreenState extends State<ResponderFormularioScreen> {
       appBar: AppBar(
         title: FutureBuilder<DocumentSnapshot>(
           future: FirebaseFirestore.instance
-              .collection('formularios')
+              .collection('formulariosComite') //carregar formulario do firebase
               .doc(widget.idFormulario)
               .get(),
           builder: (context, snapshot) {
@@ -606,6 +612,38 @@ class _ResponderFormularioScreenState extends State<ResponderFormularioScreen> {
                                           isMobile: isMobile,
                                         ),
                                         SizedBox(height: isMobile ? 16 : 30),
+                                        DropdownButtonFormField<String>(
+                                          isExpanded: true,
+                                          value: _comiteSelecionado,
+                                          decoration: InputDecoration(
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            fillColor: Colors.blue.shade50,
+                                            filled: true,
+                                            contentPadding:
+                                                const EdgeInsets.all(9),
+                                            hintText: 'Selecione um comitê',
+                                          ),
+                                          items: comites.map((String comite) {
+                                            return DropdownMenuItem<String>(
+                                              value: comite,
+                                              child: Text(comite,
+                                                  style: const TextStyle(
+                                                      fontSize: 16)),
+                                            );
+                                          }).toList(),
+                                          onChanged: (value) {
+                                            setState(() {
+                                              _comiteSelecionado = value;
+                                            });
+                                          },
+                                          validator: (value) => value == null
+                                              ? 'Selecione um comitê'
+                                              : null,
+                                        ),
+                                        SizedBox(height: isMobile ? 16 : 30),
                                         AnimatedContainer(
                                           duration: Duration(milliseconds: 300),
                                           width: constraints.maxWidth > 400
@@ -630,7 +668,7 @@ class _ResponderFormularioScreenState extends State<ResponderFormularioScreen> {
                                             ],
                                           ),
                                           child: ElevatedButton(
-                                            onPressed: _submitResponse,
+                                            onPressed: _submitResponseComite,
                                             style: ElevatedButton.styleFrom(
                                               backgroundColor:
                                                   Colors.transparent,

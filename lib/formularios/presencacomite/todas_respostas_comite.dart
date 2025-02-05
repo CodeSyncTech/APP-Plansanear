@@ -1,11 +1,20 @@
-import 'package:Plansanear/formularios/lista_presenca.dart';
+import 'package:Redeplansanea/formularios/presenca/lista_presenca.dart';
+import 'package:Redeplansanea/formularios/presencacomite/lista_presenca_comite.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class AdminScreen extends StatelessWidget {
-  const AdminScreen({super.key});
+class AdminScreenComite extends StatefulWidget {
+  const AdminScreenComite({super.key});
+
+  @override
+  _AdminScreenComiteState createState() => _AdminScreenComiteState();
+}
+
+class _AdminScreenComiteState extends State<AdminScreenComite> {
+  final TextEditingController _searchController = TextEditingController();
+  String searchQuery = "";
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +62,7 @@ class AdminScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Gestão de',
+                              'Gestão de Formulários',
                               style: GoogleFonts.roboto(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w400,
@@ -61,7 +70,7 @@ class AdminScreen extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              'Formulários',
+                              'Comitê',
                               style: GoogleFonts.roboto(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w600,
@@ -83,7 +92,8 @@ class AdminScreen extends StatelessWidget {
                         isScrollControlled:
                             true, // Permite que o modal ocupe mais espaço
                         backgroundColor: Colors.transparent,
-                        builder: (context) => const CriarFormularioScreen(),
+                        builder: (context) =>
+                            const CriarFormularioScreenComite(),
                       );
                     },
                     style: IconButton.styleFrom(
@@ -108,108 +118,150 @@ class AdminScreen extends StatelessWidget {
             colors: [Color(0xFFE6F3FF), Color(0xFFC4E0FF)],
           ),
         ),
-        child: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('formularios')
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(Color(0xFF003399)),
+        child: Column(
+          children: [
+            // Campo de busca (fora do AppBar)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() {
+                    searchQuery = value.toLowerCase();
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: "Buscar por cidade, estado...",
+                  prefixIcon: const Icon(Icons.search, color: Colors.blue),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide.none,
                   ),
-                );
-              }
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('formulariosComite')
+                    .orderBy('dataCriacao',
+                        descending:
+                            true) // ORDENANDO DO MAIS RECENTE PARA O MAIS ANTIGO
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Color(0xFF003399)),
+                      ),
+                    );
+                  }
 
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return const EmptyStateWidget(
-                  icon: Icons.assignment_add,
-                  message: "Nenhum formulário criado ainda",
-                );
-              }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const EmptyStateWidget(
+                      icon: Icons.assignment_add,
+                      message: "Nenhum formulário criado ainda",
+                    );
+                  }
 
-              var formularios = snapshot.data!.docs;
+                  var formularios = snapshot.data!.docs;
 
-              return ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: formularios.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  var form = formularios[index].data() as Map<String, dynamic>;
-                  final municipio =
-                      '${form['municipio'] ?? "Sem Localização"} - ${form['estado'] ?? "Sem Localização"}';
+                  // Filtragem da lista com base na busca
+                  var filteredFormularios = formularios.where((form) {
+                    var formData = form.data() as Map<String, dynamic>;
+                    String cidade =
+                        '${formData['municipio'] ?? ""} - ${formData['estado'] ?? ""}';
+                    return cidade.toLowerCase().contains(searchQuery);
+                  }).toList();
 
-                  final cidade =
-                      '${form['municipio'] ?? "Sem Localização"} - ${form['estado'] ?? "Sem Localização"}';
+                  return ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filteredFormularios.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      var form = filteredFormularios[index].data()
+                          as Map<String, dynamic>;
+                      final municipio =
+                          '${form['municipio'] ?? "Sem Localização"} - ${form['estado'] ?? "Sem Localização"}';
 
-                  final Future<int> quantidadeFuture = FirebaseFirestore
-                      .instance
-                      .collection('respostas')
-                      .where('idFormulario', isEqualTo: formularios[index].id)
-                      .get()
-                      .then((snapshot) => snapshot.docs.length);
+                      final Future<int> quantidadeFuture = FirebaseFirestore
+                          .instance
+                          .collection('respostasComite')
+                          .where('idFormulario',
+                              isEqualTo: filteredFormularios[index].id)
+                          .get()
+                          .then((snapshot) => snapshot.docs.length);
 
-                  return FutureBuilder<int>(
-                    future: quantidadeFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.0,
-                          ),
-                        );
-                      }
-                      if (snapshot.hasError) {
-                        return const Text('Erro ao carregar quantidade');
-                      }
-                      final int quantidade = snapshot.data ?? 0;
-
-                      return _FormularioCard(
-                        cidade: cidade,
-                        quantidade: "Respostas: ${quantidade.toString()}",
-                        dataCriacao: form['dataCriacao'] ?? "Data desconhecida",
-                        onCopy: () =>
-                            _copiarLink(context, formularios[index].id),
-                        onDelete: () =>
-                            _confirmarExclusao(context, formularios[index].id),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            PageRouteBuilder(
-                              pageBuilder:
-                                  (context, animation, secondaryAnimation) =>
-                                      RespostasScreen(
-                                idFormulario: formularios[index].id,
-                                municipio: municipio,
+                      return FutureBuilder<int>(
+                        future: quantidadeFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.0,
                               ),
-                              transitionsBuilder: (context, animation,
-                                  secondaryAnimation, child) {
-                                const curve = Curves.easeInOut;
-                                var fadeAnimation = CurvedAnimation(
-                                  parent: animation,
-                                  curve: curve,
-                                );
-                                return FadeTransition(
-                                  opacity: fadeAnimation,
-                                  child: child,
-                                );
-                              },
-                            ),
+                            );
+                          }
+                          if (snapshot.hasError) {
+                            return const Text('Erro ao carregar quantidade');
+                          }
+                          final int quantidade = snapshot.data ?? 0;
+
+                          return _FormularioCard(
+                            cidade: municipio,
+                            quantidade: "Respostas: ${quantidade.toString()}",
+                            dataCriacao:
+                                form['dataCriacao'] ?? "Data desconhecida",
+                            onCopy: () => _copiarLink(
+                                context, filteredFormularios[index].id),
+                            onDelete: () => _confirmarExclusao(
+                                context, filteredFormularios[index].id),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                PageRouteBuilder(
+                                  pageBuilder: (context, animation,
+                                          secondaryAnimation) =>
+                                      RespostasScreen(
+                                    idFormulario: filteredFormularios[index].id,
+                                    municipio: municipio,
+                                  ),
+                                  transitionsBuilder: (context, animation,
+                                      secondaryAnimation, child) {
+                                    const curve = Curves.easeInOut;
+                                    var fadeAnimation = CurvedAnimation(
+                                      parent: animation,
+                                      curve: curve,
+                                    );
+                                    return FadeTransition(
+                                      opacity: fadeAnimation,
+                                      child: child,
+                                    );
+                                  },
+                                ),
+                              );
+                            },
                           );
                         },
                       );
                     },
                   );
                 },
-              );
-            }),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   void _copiarLink(BuildContext context, String idFormulario) {
-    const baseUrl = 'https://seusite.com/formulario';
+    const baseUrl = 'https://plansanear.com.br/redeplansanea/v2/#';
     final linkCompleto = '$baseUrl/$idFormulario';
 
     Clipboard.setData(ClipboardData(text: linkCompleto)).then((_) {
@@ -237,7 +289,7 @@ class AdminScreen extends StatelessWidget {
           TextButton(
             onPressed: () {
               FirebaseFirestore.instance
-                  .collection('formularios')
+                  .collection('formulariosComite')
                   .doc(idFormulario)
                   .delete();
               Navigator.pop(ctx);
@@ -248,36 +300,6 @@ class AdminScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-void _copiarLink(BuildContext context, String idFormulario) {
-  const baseUrl = 'https://seusite.com/formulario';
-  final linkCompleto = '$baseUrl/$idFormulario';
-
-  Clipboard.setData(ClipboardData(text: linkCompleto)).then((_) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Link copiado para a área de transferência!'),
-        backgroundColor: Colors.green.shade700,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  });
-}
-
-void _deletarFormulario(BuildContext context, String idFormulario) {
-  FirebaseFirestore.instance
-      .collection('formularios')
-      .doc(idFormulario)
-      .delete()
-      .then((_) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Formulário excluído com sucesso!'),
-        backgroundColor: Colors.red.shade700,
-      ),
-    );
-  });
 }
 
 class _FormularioCard extends StatelessWidget {
@@ -435,7 +457,7 @@ class RespostasScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Respostas',
+                        'Respostas - Comitê',
                         style: GoogleFonts.roboto(
                           fontSize: 18,
                           fontWeight: FontWeight.w400,
@@ -470,7 +492,7 @@ class RespostasScreen extends StatelessWidget {
         ),
         child: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
-              .collection('respostas')
+              .collection('respostasComite')
               .where('idFormulario', isEqualTo: idFormulario)
               .snapshots(),
           builder: (context, snapshot) {
@@ -531,7 +553,7 @@ class _RespostaCard extends StatelessWidget {
           TextButton(
             onPressed: () {
               FirebaseFirestore.instance
-                  .collection('respostas')
+                  .collection('respostasComite')
                   .doc(idResposta)
                   .delete();
               Navigator.pop(ctx);
@@ -578,6 +600,10 @@ class _RespostaCard extends StatelessWidget {
             _InfoRow(
               icon: Icons.work,
               text: resposta['vinculo'] ?? 'Não informado',
+            ),
+            _InfoRow(
+              icon: Icons.group,
+              text: resposta['comite'] ?? 'Não informado',
             ),
             const SizedBox(height: 8),
             Container(

@@ -1,4 +1,4 @@
-import 'package:Plansanear/main.dart';
+import 'package:Redeplansanea/main.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intro_screen_onboarding_flutter/intro_app.dart';

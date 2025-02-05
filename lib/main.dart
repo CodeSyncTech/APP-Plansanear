@@ -1,7 +1,7 @@
-import 'package:Plansanear/formularios/forms_page.dart';
-import 'package:Plansanear/produtos/produto_a/views/formacao_comite_form.dart';
-import 'package:Plansanear/router.dart';
-import 'package:Plansanear/view/home.dart';
+import 'package:Redeplansanea/formularios/presenca/forms_page.dart';
+import 'package:Redeplansanea/produtos/produto_a/views/formacao_comite_form.dart';
+import 'package:Redeplansanea/router.dart';
+import 'package:Redeplansanea/view/home.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
@@ -353,7 +353,7 @@ Widget buildAnimatedCard(
                   children: [
                     Text(
                       title,
-                      textAlign: TextAlign.center,
+                      textAlign: TextAlign.left,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

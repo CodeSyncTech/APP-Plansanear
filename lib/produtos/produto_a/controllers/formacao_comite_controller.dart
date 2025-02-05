@@ -1,4 +1,4 @@
-import 'package:Plansanear/produtos/produto_a/models/formacao_comite_model.dart.dart';
+import 'package:Redeplansanea/produtos/produto_a/models/formacao_comite_model.dart.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 

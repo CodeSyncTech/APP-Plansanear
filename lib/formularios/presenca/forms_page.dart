@@ -1,7 +1,9 @@
-import 'package:Plansanear/formularios/todas_respostas.dart';
-import 'package:Plansanear/main.dart';
-import 'package:Plansanear/pesquisaSatisfacao.dart';
-import 'package:Plansanear/singleton.dart';
+import 'package:Redeplansanea/formularios/mapeamentoatores/todas_respostas_mapeamento.dart';
+import 'package:Redeplansanea/formularios/presenca/todas_respostas.dart';
+import 'package:Redeplansanea/formularios/presencacomite/todas_respostas_comite.dart';
+import 'package:Redeplansanea/main.dart';
+import 'package:Redeplansanea/pesquisaSatisfacao.dart';
+import 'package:Redeplansanea/singleton.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
@@ -369,10 +371,25 @@ class ListPage extends StatelessWidget {
             subtitle: 'Registro de participação',
             imagePath: 'assets/ico_presenca3.png',
             onTap: () {
-              showErrorToast(
-                context,
-                'Aguarde!',
-                'Por favor, aguarde, o produto A ainda está em desenvolvimento!',
+              Navigator.of(context).push(
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      AdminScreenComite(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    const curve = Curves.easeInOut;
+
+                    var fadeAnimation = CurvedAnimation(
+                      parent: animation,
+                      curve: curve,
+                    );
+
+                    return FadeTransition(
+                      opacity: fadeAnimation,
+                      child: child,
+                    );
+                  },
+                ),
               );
             },
           ),
@@ -383,6 +400,34 @@ class ListPage extends StatelessWidget {
             imagePath: 'assets/ico_pesquisa.png',
             onTap: () {
               _showPopup(context);
+            },
+          ),
+          buildAnimatedCard(
+            context,
+            title: 'Mapeamento Social',
+            subtitle: 'Mapeamento de atores sociais locais',
+            imagePath: 'assets/ico_mapeamento.png',
+            onTap: () {
+              Navigator.of(context).push(
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      AdminScreenMapeamento(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    const curve = Curves.easeInOut;
+
+                    var fadeAnimation = CurvedAnimation(
+                      parent: animation,
+                      curve: curve,
+                    );
+
+                    return FadeTransition(
+                      opacity: fadeAnimation,
+                      child: child,
+                    );
+                  },
+                ),
+              );
             },
           ),
         ],

@@ -1,4 +1,4 @@
-import 'package:Plansanear/produtos/produto_a/models/formacao_comite_model.dart.dart';
+import 'package:Redeplansanea/produtos/produto_a/models/formacao_comite_model.dart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controllers/formacao_comite_controller.dart';

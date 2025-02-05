@@ -1,4 +1,4 @@
-package com.br.app.plansanearapp
+package com.br.app.redeplansanea
 
 import io.flutter.embedding.android.FlutterActivity
 
