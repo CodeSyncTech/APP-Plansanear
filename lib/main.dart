@@ -1,7 +1,9 @@
 import 'package:Redeplansanea/formularios/presenca/forms_page.dart';
+import 'package:Redeplansanea/produtos/produto_a/produto_a.dart';
 import 'package:Redeplansanea/produtos/produto_a/views/formacao_comite_form.dart';
 import 'package:Redeplansanea/router.dart';
 import 'package:Redeplansanea/view/home.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
@@ -51,34 +53,67 @@ class BottomNavBar extends StatefulWidget {
 class _BottomNavBarState extends State<BottomNavBar> {
   User? get _currentUser => FirebaseAuth.instance.currentUser;
   int _page = 1;
-  // Se quiser, deixe sem nada aqui e adicione 'late'
   late List<Widget> _pages;
   final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
+
+  // userData será carregado assincronamente
+  Map<String, dynamic>? userData;
 
   @override
   void initState() {
     super.initState();
+    // Inicializa _pages com uma lista vazia ou com algum placeholder, se desejar.
+    _pages = [];
+    // Carrega os dados do usuário
+    _loadUserData();
+  }
 
-    // Aqui já é seguro acessar métodos de instância
-    _pages = [
-      ListPage(),
-      // AdminScreen(),
+  Future<void> _loadUserData() async {
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_currentUser?.uid)
+        .get();
 
-      const Produtos(),
-      HomeScreen(_currentUser), // Agora funciona
-    ];
+    setState(() {
+      userData = doc.data() as Map<String, dynamic>;
+
+      // Monta a lista _pages com base no nível da conta
+      _pages = [
+        // Se o nível for 1, adiciona a ListPage antes das demais páginas
+        if (userData!['nivelConta'] == 1) ...[
+          ListPage(),
+        ],
+        const Produtos(),
+        HomeScreen(_currentUser),
+      ];
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Enquanto os dados não são carregados, exibe um indicador de carregamento
+    if (userData == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    // Constrói os itens da navegação conforme o nível da conta
+    List<Widget> navItems = [];
+    if (userData!['nivelConta'] == 1) {
+      navItems.add(const Icon(Icons.list, size: 30));
+    }
+    navItems.addAll([
+      const Icon(Icons.house, size: 30),
+      const Icon(Icons.supervised_user_circle_sharp, size: 30),
+    ]);
+
     return Scaffold(
       extendBody: true,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFF00B3CC), // Azul ciano mais claro
-              Color(0xFF004466), // Azul profundo mais escuro
+              Color(0xFF00B3CC),
+              Color(0xFF004466),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -96,7 +131,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Image.asset(
-                        'assets/logo_plan.png',
+                        'assets/logoredeplanrmbg.png',
                         height: 70,
                         fit: BoxFit.cover,
                       ),
@@ -135,11 +170,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
       bottomNavigationBar: CurvedNavigationBar(
         key: _bottomNavigationKey,
         index: 1,
-        items: const <Widget>[
-          Icon(Icons.list, size: 30),
-          Icon(Icons.house, size: 30),
-          Icon(Icons.supervised_user_circle_sharp, size: 30),
-        ],
+        items: navItems,
         color: const Color(0xFFFFFFFF),
         buttonBackgroundColor: Colors.blueAccent,
         backgroundColor: Colors.transparent,
@@ -173,90 +204,48 @@ class Produtos extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => FormacaoComiteForm()),
+                MaterialPageRoute(builder: (context) => ProdutoA_menu()),
               );
             },
           ),
           // Produto B: Vai para a tela Esgoto
-          buildAnimatedCard(
+          buildDisabledAnimatedCard(
             context,
             title: 'Produto B',
             subtitle: 'Estratégia de Mobilização, Participação e Comunicação',
             imagePath: 'assets/capaProdutos/produtoB.png',
-            onTap: () {
-              showErrorToast(
-                context,
-                'Aguarde!',
-                'Por favor, aguarde, o produto B ainda está em desenvolvimento!',
-              );
-            },
           ),
           // Produto C: Apenas como exemplo, sem navegação específica
-          buildAnimatedCard(
+          buildDisabledAnimatedCard(
             context,
             title: 'Produto C',
             subtitle: 'Diagnóstico Técnico-Participativo',
             imagePath: 'assets/capaProdutos/produtoC.png',
-            onTap: () {
-              showErrorToast(
-                context,
-                'Aguarde!',
-                'Por favor, aguarde, o produto C ainda está em desenvolvimento!',
-              );
-            },
           ),
-          buildAnimatedCard(
+          buildDisabledAnimatedCard(
             context,
             title: 'Produto D',
             subtitle: 'Prognóstico',
             imagePath: 'assets/capaProdutos/produtoD.png',
-            onTap: () {
-              showErrorToast(
-                context,
-                'Aguarde!',
-                'Por favor, aguarde, o produto D ainda está em desenvolvimento!',
-              );
-            },
           ),
-          buildAnimatedCard(
+          buildDisabledAnimatedCard(
             context,
             title: 'Produto E',
             subtitle: 'Programas, Projetos e Ações',
             imagePath: 'assets/capaProdutos/produtoE.png',
-            onTap: () {
-              showErrorToast(
-                context,
-                'Aguarde!',
-                'Por favor, aguarde, o produto E ainda está em desenvolvimento!',
-              );
-            },
           ),
-          buildAnimatedCard(
+          buildDisabledAnimatedCard(
             context,
             title: 'Produto F',
             subtitle: 'Indicadores de Desempenho',
             imagePath: 'assets/capaProdutos/produtoF.png',
-            onTap: () {
-              showErrorToast(
-                context,
-                'Aguarde!',
-                'Por favor, aguarde, o produto E ainda está em desenvolvimento!',
-              );
-            },
           ),
 
-          buildAnimatedCard(
+          buildDisabledAnimatedCard(
             context,
             title: 'Produto G',
             subtitle: 'Resumo Executivo e Minuta de Lei',
             imagePath: 'assets/capaProdutos/produtoG.png',
-            onTap: () {
-              showErrorToast(
-                context,
-                'Aguarde!',
-                'Por favor, aguarde, o produto G ainda está em desenvolvimento!',
-              );
-            },
           ),
           SizedBox(height: 100),
         ],
@@ -299,6 +288,117 @@ void showErrorToast(BuildContext context, String title, String message) {
     pauseOnHover: true,
     dragToClose: true,
     applyBlurEffect: false,
+  );
+}
+
+Widget buildDisabledAnimatedCard(
+  BuildContext context, {
+  required String title,
+  required String subtitle,
+  required String imagePath,
+}) {
+  return Container(
+    margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(15),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.4),
+          blurRadius: 7,
+          offset: const Offset(3, 5),
+        ),
+      ],
+    ),
+    child: Card(
+      elevation: 4,
+      color: Colors.grey[200], // Cor de fundo mais clara
+      shadowColor: Colors.grey,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Stack(
+        children: [
+          // Overlay branco semi-transparente
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              color: Colors.white.withOpacity(0.7),
+            ),
+          ),
+
+          Row(
+            children: [
+              // Imagem com filtro cinza
+              ColorFiltered(
+                colorFilter: const ColorFilter.matrix([
+                  0.5,
+                  0.5,
+                  0.5,
+                  0,
+                  0,
+                  0.5,
+                  0.5,
+                  0.5,
+                  0,
+                  0,
+                  0.5,
+                  0.5,
+                  0.5,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                ]),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(15),
+                    bottomLeft: Radius.circular(15),
+                  ),
+                  child: Image.asset(
+                    imagePath,
+                    width: 100,
+                    height: 120,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[600], // Texto cinza
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[500], // Texto cinza mais claro
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // Texto de indisponível centralizado
+        ],
+      ),
+    ).animate().fadeIn(duration: 700.ms).slideX(curve: Curves.easeOut),
   );
 }
 

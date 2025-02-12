@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../view/auth_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -63,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildAuthInfo(),
           const SizedBox(height: 25),
           _buildProfileInfo(),
-          if (_accountLevel == 1) _buildAdminPanel(),
+          if (_accountLevel == 1) buildAdminPanel(context),
           const SizedBox(height: 30),
           _buildLogoutButton(context),
         ],
@@ -71,68 +72,142 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildAdminPanel() {
-    return Column(
-      children: [
-        const SizedBox(height: 30),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+  Widget buildAdminPanel(BuildContext context) {
+    TextEditingController _searchController = TextEditingController();
+    String _searchQuery = "";
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Column(
           children: [
-            const Text(
-              'Painel Administrativo',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
+            const SizedBox(height: 30),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Gestão de Usuários',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      color: Color(0xFFD2E48E),
+                      shadows: [
+                        Shadow(
+                          color: Color(0xFF004466),
+                          offset: Offset(1, 1),
+                          blurRadius: 2,
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.person_add_alt_1, // Novo ícone de usuário
+                      color: Color(0xFFD2E48E),
+                      size: 28,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AdminCreateAccountScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-            IconButton(
-              icon: const Icon(Icons.add_circle,
-                  color: Color.fromARGB(255, 0, 0, 0)),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => AdminCreateAccountScreen()),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 5,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    labelText: 'Buscar usuário',
+                    labelStyle: TextStyle(color: Colors.grey[700]),
+                    prefixIcon: Icon(Icons.search, color: Colors.grey[700]),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          BorderSide(color: Colors.blueAccent, width: 2),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value.toLowerCase();
+                    });
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            StreamBuilder<QuerySnapshot>(
+              stream:
+                  FirebaseFirestore.instance.collection('users').snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return const Text('Erro ao carregar usuários');
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                }
+
+                var filteredUsers = snapshot.data!.docs.where((doc) {
+                  var userData = doc.data() as Map<String, dynamic>;
+                  var userName = userData['name']?.toLowerCase() ?? '';
+                  return userName.contains(_searchQuery);
+                }).toList();
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: filteredUsers.length,
+                  itemBuilder: (context, index) {
+                    var userDoc = filteredUsers[index];
+                    var userData = userDoc.data() as Map<String, dynamic>;
+
+                    return _UserListItem(
+                      userData: userData,
+                      docId: userDoc.id,
+                      onEdit: () => _showEditUserDialog(userDoc),
+                      onDelete: () => _confirmDeleteUser(userDoc.id),
+                    );
+                  },
                 );
               },
             ),
           ],
-        ),
-        const SizedBox(height: 20),
-        StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance.collection('users').snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return const _ErrorInfo(message: 'Erro ao carregar usuários');
-            }
-
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
-            }
-
-            return ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: snapshot.data!.docs.length,
-              itemBuilder: (context, index) {
-                var userDoc = snapshot.data!.docs[index];
-                var userData = userDoc.data() as Map<String, dynamic>;
-
-                return _UserListItem(
-                  userData: userData,
-                  docId: userDoc.id,
-                  onEdit: () => _showEditUserDialog(userDoc),
-                  onDelete: () => _confirmDeleteUser(userDoc.id),
-                );
-              },
-            );
-          },
-        ),
-      ],
+        );
+      },
     );
   }
 
   void _showEditUserDialog(DocumentSnapshot userDoc) {
     // Obtenha os dados atuais do usuário
     var userData = userDoc.data() as Map<String, dynamic>;
+    final colorScheme = Theme.of(context).colorScheme;
 
     // Crie TextEditingControllers para cada campo que deseja editar
     TextEditingController nameController =
@@ -155,76 +230,169 @@ class _HomeScreenState extends State<HomeScreen> {
             : '2');
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Editar Usuário'),
-        content: SingleChildScrollView(
-          child: Column(children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Nome'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: 'E-mail'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: telController,
-              decoration: const InputDecoration(labelText: 'Telefone'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: municipioController,
-              decoration: const InputDecoration(labelText: 'Município'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: municipioController,
-              decoration: const InputDecoration(labelText: 'Estado'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: cargoController,
-              decoration: const InputDecoration(labelText: 'Cargo'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: cpfController,
-              decoration: const InputDecoration(labelText: 'CPF'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: nivelContaController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Nível da Conta'),
-            ),
-          ]),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+        elevation: 10,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Editar Perfil',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                _buildTextField(
+                  controller: nameController,
+                  label: 'Nome Completo',
+                  icon: Icons.person_outline,
+                ),
+                const SizedBox(height: 15),
+                _buildTextField(
+                  controller: emailController,
+                  label: 'E-mail',
+                  icon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 15),
+                _buildTextField(
+                  controller: telController,
+                  label: 'Telefone',
+                  icon: Icons.phone_iphone_outlined,
+                  keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 15),
+                _buildTextField(
+                  controller: municipioController,
+                  label: 'Município',
+                  icon: Icons.location_city_outlined,
+                ),
+                const SizedBox(height: 15),
+                _buildTextField(
+                  controller: estadoController,
+                  label: 'Estado',
+                  icon: Icons.flag_outlined,
+                ),
+                const SizedBox(height: 15),
+                _buildTextField(
+                  controller: cargoController,
+                  label: 'Cargo',
+                  icon: Icons.work_outline,
+                ),
+                const SizedBox(height: 15),
+                _buildTextField(
+                  controller: cpfController,
+                  label: 'CPF',
+                  icon: Icons.badge_outlined,
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 15),
+                _buildTextField(
+                  controller: nivelContaController,
+                  label: 'Nível da Conta',
+                  icon: Icons.security_outlined,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                ),
+                const SizedBox(height: 25),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancelar'),
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () async {
+                          // Mantenha a mesma lógica de salvamento
+                          await userDoc.reference.update({
+                            'name': nameController.text,
+                            'email': emailController.text,
+                            'tel': telController.text,
+                            'municipio': municipioController.text,
+                            'estado': estadoController.text,
+                            'cargo': cargoController.text,
+                            'cpf': cpfController.text,
+                            'nivelConta': int.parse(nivelContaController.text),
+                            // ... outros campos
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Salvar Alterações',
+                            style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          TextButton(
-            onPressed: () async {
-              await userDoc.reference.update({
-                'name': nameController.text,
-                'email': emailController.text,
-                'tel': telController.text,
-                'municipio': municipioController.text,
-                'estado': estadoController.text,
-                'cargo': cargoController.text,
-                'cpf': cpfController.text,
+        ),
+      ),
+    );
+  }
 
-                // Se nível de conta for int, converta antes de salvar
-                'nivelConta': int.tryParse(nivelContaController.text) ?? 2,
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('Salvar'),
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, size: 22),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.grey),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2,
           ),
-        ],
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 16, horizontal: 15),
       ),
     );
   }
@@ -542,32 +710,133 @@ class _UserListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        title: Text(userData['name'] ?? 'Sem nome'),
-        subtitle: Column(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Email: ${userData['email'] ?? 'Não informado'}'),
-            Text('Cargo: ${userData['cargo'] ?? 'Não informado'}'),
-            Text('Nível: ${userData['nivelConta'] ?? 2}'),
-            Text('Municipio: ${userData['municipio'] ?? 'Não informado'}'),
-            Text('Estado: ${userData['estado'] ?? 'Não informado'}'),
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor:
+                      Theme.of(context).primaryColor.withOpacity(0.2),
+                  child:
+                      Icon(Icons.person, color: Theme.of(context).primaryColor),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    userData['name'] ?? 'Sem nome',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                _buildActionButtons(),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildDivider(),
+            const SizedBox(height: 8),
+            _buildUserDetailItem(
+              icon: Icons.email,
+              label: 'Email:',
+              value: userData['email'] ?? 'Não informado',
+            ),
+            _buildUserDetailItem(
+              icon: Icons.work,
+              label: 'Cargo:',
+              value: userData['cargo'] ?? 'Não informado',
+            ),
+            _buildUserDetailItem(
+              icon: Icons.stacked_line_chart,
+              label: 'Nível:',
+              value: userData['nivelConta']?.toString() ?? '2',
+            ),
+            _buildUserDetailItem(
+              icon: Icons.location_city,
+              label: 'Município:',
+              value: userData['municipio'] ?? 'Não informado',
+            ),
+            _buildUserDetailItem(
+              icon: Icons.place,
+              label: 'Estado:',
+              value: userData['estado'] ?? 'Não informado',
+            ),
           ],
         ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit, color: Colors.blue),
-              onPressed: onEdit,
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Divider(
+      height: 1,
+      thickness: 1,
+      color: Colors.grey.withOpacity(0.2),
+    );
+  }
+
+  Widget _buildUserDetailItem(
+      {required IconData icon, required String label, required String value}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Colors.grey),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[600],
             ),
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: onDelete,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.w400,
+              color: Colors.black87,
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: Icon(Icons.edit, color: Colors.blue[800]),
+            onPressed: onEdit,
+            splashRadius: 20,
+          ),
+          Container(
+            height: 24,
+            width: 1,
+            color: Colors.grey.withOpacity(0.3),
+          ),
+          IconButton(
+            icon: Icon(Icons.delete, color: Colors.red[800]),
+            onPressed: onDelete,
+            splashRadius: 20,
+          ),
+        ],
       ),
     );
   }

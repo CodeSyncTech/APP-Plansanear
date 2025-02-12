@@ -1,8 +1,8 @@
 import 'package:Redeplansanea/formularios/mapeamentoatores/todas_respostas_mapeamento.dart';
 import 'package:Redeplansanea/formularios/presenca/todas_respostas.dart';
 import 'package:Redeplansanea/formularios/presencacomite/todas_respostas_comite.dart';
+import 'package:Redeplansanea/formularios/satisfacao/todas_respostas_satisfacao.dart';
 import 'package:Redeplansanea/main.dart';
-import 'package:Redeplansanea/pesquisaSatisfacao.dart';
 import 'package:Redeplansanea/singleton.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -15,36 +15,102 @@ class ListPage extends StatelessWidget {
     final municipios = {
       "Bahia": [
         "Araci",
-        "Caatiba",
-        "Cícero Dantas",
-        "Iaçu",
-        "Nova Itarana",
+        "Andaraí",
+        "Barra do Choça",
         "Barra da Estiva",
+        "Botuporã",
+        "Brejões",
+        "Caatiba",
+        "Cachoeira",
+        "Cafarnaum",
         "Canudos",
+        "Cardeal da Silva",
+        "Catu",
+        "Cícero Dantas",
+        "Cipó",
+        "Entre Rios",
         "Coronel João Sá",
-        "Muquém do São Francisco",
-        "Rio Real"
+        "Ibipeba",
+        "Ibirataia",
+        "Iaçu",
+        "Iguaí",
+        "Itagi",
+        "Muqúem de São Francisco",
+        "Itagimirim",
+        "Itanagra",
+        "Nova Itarana",
+        "Ituaçu",
+        "Iuiu",
+        "Rio Real",
+        "Jaguaquara",
+        "Maracás",
+        "Mirangaba",
+        "Muritiba",
+        "Nordestina",
+        "Potiraguá",
+        "Quixabeira",
+        "Ruy Barbosa",
+        "Retirolândia",
+        "São Domingos",
+        "Sapeaçu",
+        "Saúde",
+        "Sebastião Laranjeiras",
+        "Sento Sé",
+        "Ubatã",
+        "Várzea da Roça"
       ],
       "Pernambuco": [
         "Belém do São Francisco",
+        "Agrestina",
+        "Amaraji",
         "Betânia",
+        "Barreiros",
+        "Brejinho",
         "Cabrobó",
+        "Calumbi",
+        "Camocim de São Félix",
         "Carnaubeira da Penha",
+        "Canhotinho",
+        "Carnaíba",
         "Lajedo",
+        "Cedro",
+        "Cupira",
         "Petrolândia",
+        "Custódia",
+        "Ferreiros",
         "Quixaba",
+        "Granito",
+        "Ipubi",
         "São José do Belmonte",
+        "Jaqueira",
+        "Jataúba",
         "Serrita",
-        "Trindade"
+        "Joaquim Nabuco",
+        "Laoa do Ouro",
+        "Trindade",
+        "Maraial",
+        "Mirandiba",
+        "Passira",
+        "Santa Cruz",
+        "Santa Cruz da Baixa Verde",
+        "São Bento do Una",
+        "São José do Egito",
+        "Solidão",
+        "Triunfo",
+        "Verdejante"
       ],
       "Rio de Janeiro": [
-        "Itaocara",
-        "São Francisco de Itabapoana",
-        "São Fidélis",
-        "Duas Barras",
-        "Casimiro de Abreu",
         "Bom Jardim",
-        "Bom Jesus de Itabapoana"
+        "Cardoso Moreira",
+        "Bom Jesus do Itabapoana",
+        "Casimiro de Abreu",
+        "Conceição de Macabu",
+        "Duas Barras",
+        "Engenheiro Paulo de Frontín",
+        "Itaocara",
+        "São Fidélis",
+        "São Francisco de Itabapoana",
+        "Trajano de Moraes"
       ]
     };
     final tipos = ["Comitê", "Evento Público"];
@@ -101,7 +167,7 @@ class ListPage extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Image.asset(
-                        'assets/ze_planinho.png',
+                        'assets/logoredeplanrmbg.png',
                         width: 100,
                         height: 100,
                       ),
@@ -271,24 +337,11 @@ class ListPage extends StatelessWidget {
                                 print(
                                   "\n\nEste é o meu vetor: ${MeuSingleton.instance.obterVetor()}",
                                 );
-
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const PesquisaSatisfacao(),
-                                  ),
-                                );
                               }
 
                               if (estadoSelecionado != null &&
                                   municipioSelecionado != null &&
                                   tipoSelecionado != null) {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const PesquisaSatisfacao(),
-                                  ),
-                                );
                               } else {
                                 showErrorToast(
                                   context,
@@ -333,104 +386,126 @@ class ListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        children: [
-          buildAnimatedCard(
-            context,
-            title: 'Formulário de Presença',
-            subtitle: 'Atividades iniciais para a elaboração do PMSB',
-            imagePath: 'assets/ico_presenca2.png',
-            onTap: () {
-              //  context.go('/formularios');
-              Navigator.of(context).push(
-                PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) =>
-                      AdminScreen(),
-                  transitionsBuilder:
-                      (context, animation, secondaryAnimation, child) {
-                    const curve = Curves.easeInOut;
+    return SingleChildScrollView(
+      child: Center(
+        child: Column(
+          children: [
+            buildAnimatedCard(
+              context,
+              title: 'Formulário de Presença',
+              subtitle: 'Atividades iniciais para a elaboração do PMSB',
+              imagePath: 'assets/ico_presenca2.png',
+              onTap: () {
+                //  context.go('/formularios');
+                Navigator.of(context).push(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        AdminScreen(),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      const curve = Curves.easeInOut;
 
-                    var fadeAnimation = CurvedAnimation(
-                      parent: animation,
-                      curve: curve,
-                    );
+                      var fadeAnimation = CurvedAnimation(
+                        parent: animation,
+                        curve: curve,
+                      );
 
-                    return FadeTransition(
-                      opacity: fadeAnimation,
-                      child: child,
-                    );
-                  },
-                ),
-              );
-            },
-          ),
-          buildAnimatedCard(
-            context,
-            title: 'Formulário de Presença: Comitê',
-            subtitle: 'Registro de participação',
-            imagePath: 'assets/ico_presenca3.png',
-            onTap: () {
-              Navigator.of(context).push(
-                PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) =>
-                      AdminScreenComite(),
-                  transitionsBuilder:
-                      (context, animation, secondaryAnimation, child) {
-                    const curve = Curves.easeInOut;
+                      return FadeTransition(
+                        opacity: fadeAnimation,
+                        child: child,
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+            buildAnimatedCard(
+              context,
+              title: 'Formulário de Presença: Comitê',
+              subtitle: 'Registro de participação',
+              imagePath: 'assets/ico_presenca3.png',
+              onTap: () {
+                Navigator.of(context).push(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        AdminScreenComite(),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      const curve = Curves.easeInOut;
 
-                    var fadeAnimation = CurvedAnimation(
-                      parent: animation,
-                      curve: curve,
-                    );
+                      var fadeAnimation = CurvedAnimation(
+                        parent: animation,
+                        curve: curve,
+                      );
 
-                    return FadeTransition(
-                      opacity: fadeAnimation,
-                      child: child,
-                    );
-                  },
-                ),
-              );
-            },
-          ),
-          buildAnimatedCard(
-            context,
-            title: 'Formulário de Satisfação',
-            subtitle: 'Avaliação das percepções e opiniões dos participantes',
-            imagePath: 'assets/ico_pesquisa.png',
-            onTap: () {
-              _showPopup(context);
-            },
-          ),
-          buildAnimatedCard(
-            context,
-            title: 'Mapeamento Social',
-            subtitle: 'Mapeamento de atores sociais locais',
-            imagePath: 'assets/ico_mapeamento.png',
-            onTap: () {
-              Navigator.of(context).push(
-                PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) =>
-                      AdminScreenMapeamento(),
-                  transitionsBuilder:
-                      (context, animation, secondaryAnimation, child) {
-                    const curve = Curves.easeInOut;
+                      return FadeTransition(
+                        opacity: fadeAnimation,
+                        child: child,
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+            buildAnimatedCard(
+              context,
+              title: 'Pesquisa de Satisfação',
+              subtitle: 'Avaliação das percepções e opiniões dos participantes',
+              imagePath: 'assets/ico_pesquisa.png',
+              onTap: () {
+                Navigator.of(context).push(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        AdminScreenSatisfacao(),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      const curve = Curves.easeInOut;
 
-                    var fadeAnimation = CurvedAnimation(
-                      parent: animation,
-                      curve: curve,
-                    );
+                      var fadeAnimation = CurvedAnimation(
+                        parent: animation,
+                        curve: curve,
+                      );
 
-                    return FadeTransition(
-                      opacity: fadeAnimation,
-                      child: child,
-                    );
-                  },
-                ),
-              );
-            },
-          ),
-        ],
+                      return FadeTransition(
+                        opacity: fadeAnimation,
+                        child: child,
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+            buildAnimatedCard(
+              context,
+              title: 'Mapeamento de atores sociais locais',
+              subtitle: 'Mapeamento de atores sociais locais',
+              imagePath: 'assets/ico_mapeamento.png',
+              onTap: () {
+                Navigator.of(context).push(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        AdminScreenMapeamento(),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      const curve = Curves.easeInOut;
+
+                      var fadeAnimation = CurvedAnimation(
+                        parent: animation,
+                        curve: curve,
+                      );
+
+                      return FadeTransition(
+                        opacity: fadeAnimation,
+                        child: child,
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+            SizedBox(height: 120),
+          ],
+        ),
       ),
     );
   }

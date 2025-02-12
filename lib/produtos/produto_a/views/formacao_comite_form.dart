@@ -231,7 +231,7 @@ class _FormacaoComiteFormState extends State<FormacaoComiteForm> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Image.asset(
-                          'assets/logo_plan.png',
+                          'assets/logoredeplanrmbg.png',
                           height: 50,
                           fit: BoxFit.contain,
                         ),

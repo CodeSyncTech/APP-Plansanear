@@ -216,15 +216,15 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                         child: _isLogin
                             ? Hero(
                                 tag: 'logo',
-                                child: Image.asset('assets/ze_planinho2.png',
-                                    height: 150),
+                                child: Image.asset('assets/redeplanrmbg.png',
+                                    height: 250),
                               )
                             : Transform.rotate(
                                 angle: 0.02,
                                 child: Hero(
                                   tag: 'logo',
-                                  child: Image.asset('assets/ze_planinho2.png',
-                                      height: 150),
+                                  child: Image.asset('assets/redeplanrmbg.png',
+                                      height: 250),
                                 ),
                               ),
                       ),

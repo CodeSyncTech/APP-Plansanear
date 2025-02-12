@@ -49,7 +49,7 @@ class _AdminScreenMapeamentoState extends State<AdminScreenMapeamento> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Image.asset(
-                                'assets/logo_plan.png',
+                                'assets/logoredeplanrmbg.png',
                                 height: 50,
                                 fit: BoxFit.contain,
                               ),
@@ -262,7 +262,7 @@ class _AdminScreenMapeamentoState extends State<AdminScreenMapeamento> {
   }
 
   void _copiarLink(BuildContext context, String idFormulario) {
-    const baseUrl = 'https://plansanear.com.br/redeplansanea/v2/#';
+    const baseUrl = 'https://plansanear.com.br/redeplansanea/v9#/mapeamento/';
     final linkCompleto = '$baseUrl/$idFormulario';
 
     Clipboard.setData(ClipboardData(text: linkCompleto)).then((_) {
@@ -400,9 +400,6 @@ class _FormularioCard extends StatelessWidget {
   }
 }
 
-// Mantenha as outras classes (RespostasScreen, _RespostaCard, _InfoRow, EmptyStateWidget)
-// com as alterações anteriores, atualizando apenas os detalhes de estilo conforme necessário
-
 class RespostasScreen extends StatelessWidget {
   final String idFormulario;
   final String municipio;
@@ -422,16 +419,12 @@ class RespostasScreen extends StatelessWidget {
           elevation: 2,
           shadowColor: Colors.blue.shade100,
           flexibleSpace: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-            ),
+            decoration: const BoxDecoration(color: Colors.white),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.center, // Centralização principal
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo centralizado
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -442,17 +435,14 @@ class RespostasScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Image.asset(
-                          'assets/logo_plan.png',
+                          'assets/logoredeplanrmbg.png',
                           height: 50,
                           fit: BoxFit.contain,
                         ),
                       ),
                     ],
                   ),
-
                   const SizedBox(width: 20),
-
-                  // Título centralizado verticalmente
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -511,20 +501,38 @@ class RespostasScreen extends StatelessWidget {
 
             var respostas = snapshot.data!.docs;
 
-            return ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: respostas.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                var resposta = respostas[index].data() as Map<String, dynamic>;
-                String idResposta = respostas[index]
-                    .id; // Obtendo corretamente a ID da resposta
+            // Agrupando respostas por categoria
+            Map<String, List<Map<String, dynamic>>> respostasPorCategoria = {
+              "Representantes do Poder Executivo": [],
+              "Representantes dos Conselhos Municipais": [],
+              "Representantes dos Segmentos Organizados Sociais": [],
+              "Representantes da Sociedade Civil": []
+            };
 
-                return _RespostaCard(
-                  resposta: resposta,
-                  idResposta: idResposta, // Agora passando a ID correta
+            for (var doc in respostas) {
+              var data = doc.data() as Map<String, dynamic>;
+              if (data.containsKey('representantes')) {
+                var representantes =
+                    data['representantes'] as Map<String, dynamic>;
+                representantes.forEach((categoria, lista) {
+                  if (respostasPorCategoria.containsKey(categoria)) {
+                    respostasPorCategoria[categoria]
+                        ?.addAll(List<Map<String, dynamic>>.from(lista));
+                  }
+                });
+              }
+            }
+
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: respostasPorCategoria.entries
+                  .where((entry) => entry.value.isNotEmpty)
+                  .map((entry) {
+                return _CategoriaCard(
+                  categoria: entry.key,
+                  representantes: entry.value,
                 );
-              },
+              }).toList(),
             );
           },
         ),
@@ -533,38 +541,14 @@ class RespostasScreen extends StatelessWidget {
   }
 }
 
-// Ajustando _RespostaCard para incluir a exclusão de respostas
-class _RespostaCard extends StatelessWidget {
-  final Map<String, dynamic> resposta;
-  final String idResposta;
+class _CategoriaCard extends StatelessWidget {
+  final String categoria;
+  final List<Map<String, dynamic>> representantes;
 
-  const _RespostaCard({required this.resposta, required this.idResposta});
-
-  void _confirmarExclusao(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Confirmar Exclusão"),
-        content: const Text("Tem certeza que deseja excluir esta resposta?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text("Cancelar"),
-          ),
-          TextButton(
-            onPressed: () {
-              FirebaseFirestore.instance
-                  .collection('respostasMapeamento')
-                  .doc(idResposta)
-                  .delete();
-              Navigator.pop(ctx);
-            },
-            child: const Text("Excluir", style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
+  const _CategoriaCard({
+    required this.categoria,
+    required this.representantes,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -576,55 +560,53 @@ class _RespostaCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const Icon(Icons.person, size: 18, color: Colors.blue),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: SelectableText(
-                    resposta['nomeCompleto'] ?? "Anônimo",
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _confirmarExclusao(context),
-                ),
-              ],
+            Text(
+              categoria,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF003399),
+              ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
+            ...representantes.map((representante) {
+              return _RepresentanteCard(representante: representante);
+            }).toList(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RepresentanteCard extends StatelessWidget {
+  final Map<String, dynamic> representante;
+
+  const _RepresentanteCard({required this.representante});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             _InfoRow(
-              icon: Icons.phone,
-              text: resposta['telefone'] ?? 'Não informado',
+              icon: Icons.person,
+              text: representante['nome'] ?? 'Nome não informado',
             ),
             _InfoRow(
               icon: Icons.work,
-              text: resposta['vinculo'] ?? 'Não informado',
+              text: representante['cargo'] ?? 'Cargo/Instituição não informado',
             ),
             _InfoRow(
-              icon: Icons.group,
-              text: resposta['comite'] ?? 'Não informado',
+              icon: Icons.phone,
+              text: representante['telefone'] ?? 'Telefone não informado',
             ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.access_time, size: 14, color: Colors.blue),
-                  const SizedBox(width: 4),
-                  SelectableText(
-                    "${resposta['dataResposta']} às ${resposta['horaResposta']}",
-                    style: const TextStyle(fontSize: 12, color: Colors.blue),
-                  ),
-                ],
-              ),
-            )
           ],
         ),
       ),

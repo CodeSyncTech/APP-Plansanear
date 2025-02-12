@@ -67,7 +67,7 @@ dependencies:
 
 flutter_native_splash:
   color: "#FFFFFF"
-  image: "assets/plansanear.png"
+  image: "assets/redeplanrmbg.png"
   android: true
   ios: true
 
@@ -76,7 +76,7 @@ flutter_icons:
   remove_alpha_ios: true
   android: "launcher_icon"
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/logo1040.png"
+  adaptive_icon_foreground: "assets/redeplanrmbg.png"
 
 dev_dependencies:
   flutter_test:

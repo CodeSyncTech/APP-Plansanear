@@ -47,7 +47,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Image.asset(
-                                'assets/logo_plan.png',
+                                'assets/logoredeplanrmbg.png',
                                 height: 50,
                                 fit: BoxFit.contain,
                               ),
@@ -259,7 +259,7 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   void _copiarLink(BuildContext context, String idFormulario) {
-    const baseUrl = 'https://plansanear.com.br/redeplansanea/v2/#';
+    const baseUrl = 'https://plansanear.com.br/redeplansanea/v9#/';
     final linkCompleto = '$baseUrl/$idFormulario';
 
     Clipboard.setData(ClipboardData(text: linkCompleto)).then((_) {
@@ -439,7 +439,7 @@ class RespostasScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Image.asset(
-                          'assets/logo_plan.png',
+                          'assets/logoredeplanrmbg.png',
                           height: 50,
                           fit: BoxFit.contain,
                         ),

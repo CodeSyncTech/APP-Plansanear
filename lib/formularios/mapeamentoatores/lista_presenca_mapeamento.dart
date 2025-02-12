@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
@@ -68,49 +69,137 @@ class _CriarFormularioScreenMapeamentoState
   final municipios = {
     "Bahia": [
       "Araci",
-      "Caatiba",
-      "Cícero Dantas",
-      "Iaçu",
-      "Nova Itarana",
+      "Andaraí",
+      "Barra do Choça",
       "Barra da Estiva",
+      "Botuporã",
+      "Brejões",
+      "Caatiba",
+      "Cachoeira",
+      "Cafarnaum",
       "Canudos",
+      "Cardeal da Silva",
+      "Catu",
+      "Cícero Dantas",
+      "Cipó",
+      "Entre Rios",
       "Coronel João Sá",
-      "Muquém do São Francisco",
-      "Rio Real"
+      "Ibipeba",
+      "Ibirataia",
+      "Iaçu",
+      "Iguaí",
+      "Itagi",
+      "Muqúem de São Francisco",
+      "Itagimirim",
+      "Itanagra",
+      "Nova Itarana",
+      "Ituaçu",
+      "Iuiu",
+      "Rio Real",
+      "Jaguaquara",
+      "Maracás",
+      "Mirangaba",
+      "Muritiba",
+      "Nordestina",
+      "Potiraguá",
+      "Quixabeira",
+      "Ruy Barbosa",
+      "Retirolândia",
+      "São Domingos",
+      "Sapeaçu",
+      "Saúde",
+      "Sebastião Laranjeiras",
+      "Sento Sé",
+      "Ubatã",
+      "Várzea da Roça"
     ],
     "Pernambuco": [
       "Belém do São Francisco",
+      "Agrestina",
+      "Amaraji",
       "Betânia",
+      "Barreiros",
+      "Brejinho",
       "Cabrobó",
+      "Calumbi",
+      "Camocim de São Félix",
       "Carnaubeira da Penha",
+      "Canhotinho",
+      "Carnaíba",
       "Lajedo",
+      "Cedro",
+      "Cupira",
       "Petrolândia",
+      "Custódia",
+      "Ferreiros",
       "Quixaba",
+      "Granito",
+      "Ipubi",
       "São José do Belmonte",
+      "Jaqueira",
+      "Jataúba",
       "Serrita",
-      "Trindade"
+      "Joaquim Nabuco",
+      "Laoa do Ouro",
+      "Trindade",
+      "Maraial",
+      "Mirandiba",
+      "Passira",
+      "Santa Cruz",
+      "Santa Cruz da Baixa Verde",
+      "São Bento do Una",
+      "São José do Egito",
+      "Solidão",
+      "Triunfo",
+      "Verdejante"
     ],
     "Rio de Janeiro": [
-      "Itaocara",
-      "São Francisco de Itabapoana",
-      "São Fidélis",
-      "Duas Barras",
-      "Casimiro de Abreu",
       "Bom Jardim",
-      "Bom Jesus de Itabapoana"
+      "Cardoso Moreira",
+      "Bom Jesus do Itabapoana",
+      "Casimiro de Abreu",
+      "Conceição de Macabu",
+      "Duas Barras",
+      "Engenheiro Paulo de Frontín",
+      "Itaocara",
+      "São Fidélis",
+      "São Francisco de Itabapoana",
+      "Trajano de Moraes"
     ]
   };
-
   String _estadoSelecionado = "Bahia";
   String? _municipioSelecionado;
 
   String _generateLink(String idFormulario) {
-    return 'http://plansanear/#/$idFormulario';
+    return 'https://plansanear.com.br/redeplansanea/v9#/mapeamento/$idFormulario';
   }
 
   Future<void> _submitFormMapeamento() async {
     if (_formKey.currentState!.validate() && _municipioSelecionado != null) {
       final user = _auth.currentUser!;
+
+      // Verifica se já existe um formulário para essa cidade e estado
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('formulariosMapeamento')
+          .where('municipio', isEqualTo: _municipioSelecionado)
+          .where('estado', isEqualTo: _estadoSelecionado)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Se já existir um formulário, exibe um erro e interrompe a criação
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Já existe um formulário criado para $_municipioSelecionado - $_estadoSelecionado.',
+            ),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return; // Sai da função sem criar um novo formulário
+      }
+
+      // Se não existir, continua com a criação do formulário
       final id = await _firestoreService.generateFormId();
       final link = _generateLink(id);
 
@@ -387,7 +476,6 @@ class _CriarFormularioScreenMapeamentoState
 }
 // ... (mantido igual o original)
 
-// 3. Tela de Resposta do Formulário (Adicionada)
 class ResponderFormularioScreenMapeamento extends StatefulWidget {
   final String idFormulario;
 
@@ -404,403 +492,335 @@ class ResponderFormularioScreenMapeamento extends StatefulWidget {
 class _ResponderFormularioScreenMapeamentoState
     extends State<ResponderFormularioScreenMapeamento> {
   final _formKey = GlobalKey<FormState>();
-  final FirestoreServiceMapeamento _firestoreService =
-      FirestoreServiceMapeamento();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Controladores para os campos de entrada
-  final TextEditingController _nomeController = TextEditingController();
-  final TextEditingController _telefoneController = TextEditingController();
-  final TextEditingController _vinculoController = TextEditingController();
+  final List<String> categorias = [
+    "Representantes do Poder Executivo",
+    "Representantes dos Conselhos Municipais",
+    "Representantes dos Segmentos Organizados Sociais",
+    "Representantes da Sociedade Civil"
+  ];
 
-  String _telefoneCompleto = ''; // Para armazenar o telefone formatado
-
-  final List<String> comites = ["Coordenação", "Executivo"];
-  String? _comiteSelecionado;
+  Map<String, List<Map<String, String>>> representantes = {};
 
   @override
-  void dispose() {
-    _nomeController.dispose();
-    _telefoneController.dispose();
-    _vinculoController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _fetchFormularioInfo();
+    for (var categoria in categorias) {
+      representantes[categoria] = [];
+    }
+  }
+
+  void _adicionarRepresentante(String categoria) {
+    setState(() {
+      representantes[categoria]?.add({
+        'nome': '',
+        'cargo': '',
+        'telefone': '',
+      });
+    });
+  }
+
+  void _removerRepresentante(String categoria, int index) {
+    setState(() {
+      representantes[categoria]?.removeAt(index);
+    });
   }
 
   Future<void> _submitResponseMapeamento() async {
     if (_formKey.currentState!.validate()) {
-      await _firestoreService.submitResponseMapeamento({
+      final user = _auth.currentUser!;
+
+      // Estrutura correta para salvar no Firestore
+      Map<String, dynamic> responseData = {
         'idFormulario': widget.idFormulario,
-        'nomeCompleto': _nomeController.text,
-        'telefone': _telefoneCompleto,
-        'vinculo': _vinculoController.text,
-        'comite': _comiteSelecionado,
+        'autor': user.displayName ?? user.email!,
+        'dataResposta': DateTime.now().toIso8601String(),
+        'representantes': {},
+      };
+
+      // Adiciona representantes ao Firestore no formato correto
+      representantes.forEach((categoria, lista) {
+        if (lista.isNotEmpty) {
+          responseData['representantes'][categoria] = lista;
+        }
       });
 
-      showDialog(
-        context: context,
-        builder: (context) => const AlertDialog(
-          title: Text('Obrigado!'),
-          content: Text('Resposta enviada com sucesso.'),
+      await _firestore.collection('respostasMapeamento').add(responseData);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Resposta enviada com sucesso!'),
+          backgroundColor: Colors.green,
         ),
       );
+
+      Navigator.pop(context);
+    }
+  }
+
+  String? _municipio;
+  String? _estado;
+
+  Future<void> _fetchFormularioInfo() async {
+    DocumentSnapshot<Map<String, dynamic>> docSnapshot = await _firestore
+        .collection('formulariosMapeamento')
+        .doc(widget.idFormulario)
+        .get();
+
+    if (docSnapshot.exists) {
+      setState(() {
+        _municipio = docSnapshot.data()?['municipio'];
+        _estado = docSnapshot.data()?['estado'];
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 600;
     return Scaffold(
-      appBar: AppBar(
-        title: FutureBuilder<DocumentSnapshot>(
-          future: FirebaseFirestore.instance
-              .collection(
-                  'formulariosMapeamento') //carregar formulario do firebase
-              .doc(widget.idFormulario)
-              .get(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Row(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100.0),
+        child: AppBar(
+          elevation: 2,
+          shadowColor: Colors.blue.shade100,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.center, // Centralização principal
                 children: [
-                  SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation(Colors.white70),
-                    ),
+                  // Logo centralizado
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Image.asset(
+                          'assets/logoredeplanrmbg.png',
+                          height: 50,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(width: 12),
-                ],
-              );
-            }
 
-            if (!snapshot.hasData || !snapshot.data!.exists) {
-              return Row(
-                children: [
-                  Icon(Icons.error_outline, size: 20),
-                  SizedBox(width: 8),
-                  Text('Formulário não encontrado',
-                      style: TextStyle(fontSize: 16)),
-                ],
-              );
-            }
+                  const SizedBox(width: 20),
 
-            final data = snapshot.data!.data() as Map<String, dynamic>;
-            final municipio = data['municipio'] ?? 'Desconhecido';
-            final estado = data['estado'] ?? 'Desconhecido';
-            final dataCriacao = data['dataCriacao'] as String;
-
-            return AnimatedSwitcher(
-              duration: Duration(milliseconds: 500),
-              child: RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '$municipio - $estado\n',
-                      style: TextStyle(
-                        fontSize: isMobile ? 14 : 16,
-                        fontWeight: FontWeight.bold,
+                  // Título centralizado verticalmente
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Mapeamento',
+                        style: GoogleFonts.roboto(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
-                    ),
-                    TextSpan(
-                      text: '📋 Lista de Presença 🗓️ $dataCriacao ',
-                      style: TextStyle(
-                        fontSize: isMobile ? 10 : 12,
-                        fontStyle: FontStyle.italic,
+                      Text(
+                        _municipio != null && _estado != null
+                            ? '$_municipio - $_estado'
+                            : 'Carregando...',
+                        style: GoogleFonts.roboto(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.blue.shade800,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                textAlign: TextAlign.center,
+                    ],
+                  ),
+                ],
               ),
-            );
-          },
-        ),
-        centerTitle: true,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.blue.shade700,
-                const Color.fromARGB(255, 188, 213, 255)
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
             ),
           ),
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.blue.shade50,
-              Colors.white,
-            ],
-          ),
-        ),
-        child: Center(
-          child: ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: 800), // Largura máxima para web
-            child: Padding(
-              padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-              child: SingleChildScrollView(
-                physics: AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildFormHeader(isMobile),
-                    SizedBox(height: isMobile ? 16 : 24),
-                    Card(
-                      elevation: 8,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-                        child: Form(
-                          key: _formKey,
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              return Wrap(
-                                spacing: 20,
-                                runSpacing: 20,
-                                children: [
-                                  SizedBox(
-                                    width: constraints.maxWidth > 500
-                                        ? 500
-                                        : constraints.maxWidth,
-                                    child: Column(
-                                      children: [
-                                        _buildCustomTextField(
-                                          controller: _nomeController,
-                                          label: 'Nome Completo',
-                                          icon: Icons.person_outline,
-                                          isMobile: isMobile,
-                                        ),
-                                        SizedBox(height: isMobile ? 12 : 20),
-                                        IntlPhoneField(
-                                          controller: _telefoneController,
-                                          decoration: InputDecoration(
-                                            labelText: 'Telefone',
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            fillColor: Colors.blue.shade50,
-                                            filled: true,
-                                          ),
-                                          initialCountryCode:
-                                              'BR', // Define o Brasil como padrão (+55)
-                                          onChanged: (phone) {
-                                            setState(() {
-                                              _telefoneCompleto = phone
-                                                  .completeNumber; // Captura o telefone formatado
-                                            });
-                                          },
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.number.isEmpty) {
-                                              return 'Informe um número de telefone válido';
-                                            }
-                                            return null;
-                                          },
-                                        ),
-                                        SizedBox(height: isMobile ? 12 : 20),
-                                        _buildCustomTextField(
-                                          controller: _vinculoController,
-                                          label:
-                                              'Vínculo (Órgão/Instituição/Setor/)',
-                                          icon: Icons.link_outlined,
-                                          isMobile: isMobile,
-                                        ),
-                                        SizedBox(height: isMobile ? 16 : 30),
-                                        DropdownButtonFormField<String>(
-                                          isExpanded: true,
-                                          value: _comiteSelecionado,
-                                          decoration: InputDecoration(
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            fillColor: Colors.blue.shade50,
-                                            filled: true,
-                                            contentPadding:
-                                                const EdgeInsets.all(9),
-                                            hintText: 'Selecione um comitê',
-                                          ),
-                                          items: comites.map((String comite) {
-                                            return DropdownMenuItem<String>(
-                                              value: comite,
-                                              child: Text(comite,
-                                                  style: const TextStyle(
-                                                      fontSize: 16)),
-                                            );
-                                          }).toList(),
-                                          onChanged: (value) {
-                                            setState(() {
-                                              _comiteSelecionado = value;
-                                            });
-                                          },
-                                          validator: (value) => value == null
-                                              ? 'Selecione um comitê'
-                                              : null,
-                                        ),
-                                        SizedBox(height: isMobile ? 16 : 30),
-                                        AnimatedContainer(
-                                          duration: Duration(milliseconds: 300),
-                                          width: constraints.maxWidth > 400
-                                              ? 400
-                                              : double.infinity,
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                            gradient: LinearGradient(
-                                              colors: [
-                                                Colors.blue.shade600,
-                                                Colors.blueAccent.shade400,
-                                              ],
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.blue
-                                                    .withOpacity(0.3),
-                                                blurRadius: 10,
-                                                offset: Offset(0, 4),
-                                              ),
-                                            ],
-                                          ),
-                                          child: ElevatedButton(
-                                            onPressed:
-                                                _submitResponseMapeamento,
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              shadowColor: Colors.transparent,
-                                              padding: EdgeInsets.symmetric(
-                                                vertical: isMobile ? 14 : 16,
-                                              ),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                              ),
-                                            ),
-                                            child: FittedBox(
-                                              fit: BoxFit.scaleDown,
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Icon(
-                                                    Icons.send_to_mobile,
-                                                    size: isMobile ? 20 : 24,
-                                                    color: Colors.white,
-                                                  ),
-                                                  SizedBox(
-                                                      width: isMobile ? 8 : 12),
-                                                  Text(
-                                                    'ENVIAR RESPOSTA',
-                                                    style: TextStyle(
-                                                      fontSize:
-                                                          isMobile ? 14 : 16,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      letterSpacing: 1.2,
-                                                      color: Colors.white,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              Text(
+                'Preencha os representantes para cada categoria desejada:',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 20),
+              ...categorias.map((categoria) {
+                return _buildCategoryCard(categoria);
+              }).toList(),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _submitResponseMapeamento,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal.shade700,
+                  padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 4,
+                  shadowColor: Colors.teal.shade300,
+                ),
+                child: Text(
+                  'ENVIAR FORMULÁRIO',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildFormHeader(bool isMobile) {
-    return Column(
-      children: [
-        Icon(Icons.how_to_reg_rounded,
-            size: isMobile ? 40 : 50, color: Colors.blue.shade800),
-        SizedBox(height: isMobile ? 8 : 10),
-        Text(
-          'Registro de Participação',
-          style: TextStyle(
-            fontSize: isMobile ? 20 : 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue.shade900,
-            letterSpacing: 0.8,
+  Widget _buildCategoryCard(String categoria) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      margin: const EdgeInsets.only(bottom: 20),
+      child: ExpansionTile(
+        leading: Icon(Icons.group, color: Colors.teal.shade700),
+        title: Text(
+          categoria,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
           ),
         ),
-        SizedBox(height: isMobile ? 4 : 8),
-        Text(
-          'Preencha todos os campos abaixo para confirmar sua presença',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: isMobile ? 12 : 14,
-            color: Colors.grey.shade600,
+        childrenPadding: const EdgeInsets.symmetric(horizontal: 15),
+        expandedAlignment: Alignment.centerLeft,
+        children: [
+          ...List.generate(
+            representantes[categoria]!.length,
+            (index) => _buildRepresentanteFields(categoria, index),
           ),
-        ),
-      ],
+          SizedBox(height: 10),
+          _buildAddButton(categoria),
+          SizedBox(height: 10),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRepresentanteFields(String categoria, int index) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.teal.shade50,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.teal.shade200),
+      ),
+      child: Column(
+        children: [
+          _buildCustomTextField(
+            label: 'Nome Completo',
+            icon: Icons.person,
+            onChanged: (value) =>
+                representantes[categoria]?[index]['nome'] = value,
+          ),
+          _buildCustomTextField(
+            label: 'Cargo/Instituição',
+            icon: Icons.work,
+            onChanged: (value) =>
+                representantes[categoria]?[index]['cargo'] = value,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: IntlPhoneField(
+              decoration: InputDecoration(
+                labelText: 'Telefone',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                prefixIcon: Icon(Icons.phone, color: Colors.teal.shade700),
+                contentPadding: const EdgeInsets.symmetric(vertical: 15),
+              ),
+              style: TextStyle(color: Colors.teal.shade900),
+              dropdownTextStyle: TextStyle(color: Colors.teal.shade900),
+              initialCountryCode: 'BR',
+              onChanged: (phone) {
+                setState(() {
+                  representantes[categoria]?[index]['telefone'] =
+                      phone.completeNumber;
+                });
+              },
+              validator: (phone) {
+                if (phone == null || phone.number.isEmpty) {
+                  return 'Informe um número válido';
+                }
+                return null;
+              },
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: IconButton(
+              icon: Icon(Icons.remove_circle, color: Colors.red),
+              onPressed: () => _removerRepresentante(categoria, index),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildCustomTextField({
-    required TextEditingController controller,
     required String label,
     required IconData icon,
-    bool isMobile = false,
-    TextInputType keyboardType = TextInputType.text,
+    required Function(String) onChanged,
   }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: Colors.blue.shade600),
-        floatingLabelStyle: TextStyle(
-          color: Colors.blue.shade800,
-          fontSize: isMobile ? 14 : 16,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.blue.shade100),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.blue.shade600,
-            width: isMobile ? 1.5 : 2,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: TextFormField(
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon, color: Colors.teal.shade700),
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
-        filled: true,
-        fillColor: Colors.blue.shade50,
-        contentPadding: EdgeInsets.symmetric(
-          vertical: isMobile ? 14 : 18,
-          horizontal: isMobile ? 12 : 16,
-        ),
+        style: TextStyle(color: Colors.teal.shade900),
+        onChanged: onChanged,
+        validator: (value) => value!.isEmpty ? 'Campo obrigatório' : null,
       ),
-      style: TextStyle(fontSize: isMobile ? 14 : 16),
-      validator: (value) => value!.isEmpty ? 'Campo obrigatório' : null,
+    );
+  }
+
+  Widget _buildAddButton(String categoria) {
+    return ElevatedButton.icon(
+      icon: Icon(Icons.add_circle, color: Colors.white),
+      label: const Text('Adicionar Representante'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color.fromARGB(255, 121, 237, 224),
+        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
+      ),
+      onPressed: () => _adicionarRepresentante(categoria),
     );
   }
 }

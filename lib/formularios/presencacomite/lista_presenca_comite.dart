@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
@@ -64,36 +65,102 @@ class _CriarFormularioScreenComiteState
   final municipios = {
     "Bahia": [
       "Araci",
-      "Caatiba",
-      "Cícero Dantas",
-      "Iaçu",
-      "Nova Itarana",
+      "Andaraí",
+      "Barra do Choça",
       "Barra da Estiva",
+      "Botuporã",
+      "Brejões",
+      "Caatiba",
+      "Cachoeira",
+      "Cafarnaum",
       "Canudos",
+      "Cardeal da Silva",
+      "Catu",
+      "Cícero Dantas",
+      "Cipó",
+      "Entre Rios",
       "Coronel João Sá",
-      "Muquém do São Francisco",
-      "Rio Real"
+      "Ibipeba",
+      "Ibirataia",
+      "Iaçu",
+      "Iguaí",
+      "Itagi",
+      "Muqúem de São Francisco",
+      "Itagimirim",
+      "Itanagra",
+      "Nova Itarana",
+      "Ituaçu",
+      "Iuiu",
+      "Rio Real",
+      "Jaguaquara",
+      "Maracás",
+      "Mirangaba",
+      "Muritiba",
+      "Nordestina",
+      "Potiraguá",
+      "Quixabeira",
+      "Ruy Barbosa",
+      "Retirolândia",
+      "São Domingos",
+      "Sapeaçu",
+      "Saúde",
+      "Sebastião Laranjeiras",
+      "Sento Sé",
+      "Ubatã",
+      "Várzea da Roça"
     ],
     "Pernambuco": [
       "Belém do São Francisco",
+      "Agrestina",
+      "Amaraji",
       "Betânia",
+      "Barreiros",
+      "Brejinho",
       "Cabrobó",
+      "Calumbi",
+      "Camocim de São Félix",
       "Carnaubeira da Penha",
+      "Canhotinho",
+      "Carnaíba",
       "Lajedo",
+      "Cedro",
+      "Cupira",
       "Petrolândia",
+      "Custódia",
+      "Ferreiros",
       "Quixaba",
+      "Granito",
+      "Ipubi",
       "São José do Belmonte",
+      "Jaqueira",
+      "Jataúba",
       "Serrita",
-      "Trindade"
+      "Joaquim Nabuco",
+      "Laoa do Ouro",
+      "Trindade",
+      "Maraial",
+      "Mirandiba",
+      "Passira",
+      "Santa Cruz",
+      "Santa Cruz da Baixa Verde",
+      "São Bento do Una",
+      "São José do Egito",
+      "Solidão",
+      "Triunfo",
+      "Verdejante"
     ],
     "Rio de Janeiro": [
-      "Itaocara",
-      "São Francisco de Itabapoana",
-      "São Fidélis",
-      "Duas Barras",
-      "Casimiro de Abreu",
       "Bom Jardim",
-      "Bom Jesus de Itabapoana"
+      "Cardoso Moreira",
+      "Bom Jesus do Itabapoana",
+      "Casimiro de Abreu",
+      "Conceição de Macabu",
+      "Duas Barras",
+      "Engenheiro Paulo de Frontín",
+      "Itaocara",
+      "São Fidélis",
+      "São Francisco de Itabapoana",
+      "Trajano de Moraes"
     ]
   };
 
@@ -101,7 +168,7 @@ class _CriarFormularioScreenComiteState
   String? _municipioSelecionado;
 
   String _generateLink(String idFormulario) {
-    return 'http://plansanear/#/$idFormulario';
+    return 'https://plansanear.com.br/redeplansanea/v9#/comite/$idFormulario';
   }
 
   Future<void> _submitFormComite() async {
@@ -430,13 +497,7 @@ class _ResponderFormularioScreenComiteState
         'comite': _comiteSelecionado,
       });
 
-      showDialog(
-        context: context,
-        builder: (context) => const AlertDialog(
-          title: Text('Obrigado!'),
-          content: Text('Resposta enviada com sucesso.'),
-        ),
-      );
+      GoRouter.of(context).go('/forms/respondido');
     }
   }
 
