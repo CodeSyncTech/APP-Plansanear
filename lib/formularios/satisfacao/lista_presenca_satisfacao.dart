@@ -175,7 +175,7 @@ class _CriarFormularioScreenSatisfacaoState
   String? _tipoEventoSelecionado;
 
   String _generateLink(String idFormulario) {
-    return 'https://plansanear.com.br/redeplansanea/v9#/pesquisasatisfacao/$idFormulario';
+    return 'https://plansanear.com.br/redeplansanea/v10/#/pesquisasatisfacao/$idFormulario';
   }
 
   Future<void> _submitFormSatisfacao() async {
@@ -733,137 +733,158 @@ class _SatisfactionSurveyFormState extends State<SatisfactionSurveyForm>
             tipoEvento = 'Encontro Público';
           }
 
-          return Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Colors.indigo.shade700, Colors.purple.shade400],
-              ),
-            ),
-            child: Center(
-              child: Container(
-                constraints:
-                    BoxConstraints(maxWidth: isWeb ? 800 : double.infinity),
-                padding: EdgeInsets.symmetric(
-                  vertical: isWeb ? 40 : 16,
-                  horizontal: isWeb ? 40 : 16,
+          return SingleChildScrollView(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.indigo.shade700, Colors.purple.shade400],
                 ),
-                child: AnimatedOpacity(
-                  opacity: 1.0,
-                  duration: Duration(milliseconds: 500),
-                  child: Card(
-                    elevation: 10,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.all(isWeb ? 40.0 : 20.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          TweenAnimationBuilder(
-                            tween: Tween<double>(begin: 0, end: 1),
-                            duration: Duration(milliseconds: 500),
-                            builder: (context, double value, child) {
-                              return Transform.scale(
-                                scale: value,
-                                child: child,
-                              );
-                            },
-                            child: Icon(
-                              Icons.assignment_outlined,
-                              size: isWeb ? 80 : 60,
-                              color: Colors.indigo,
-                            ),
+              ),
+              child: Column(
+                children: [
+                  Center(
+                    child: Container(
+                      constraints: BoxConstraints(
+                          maxWidth: isWeb ? 800 : double.infinity),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isWeb ? 40 : 16,
+                        horizontal: isWeb ? 40 : 16,
+                      ),
+                      child: AnimatedOpacity(
+                        opacity: 1.0,
+                        duration: Duration(milliseconds: 500),
+                        child: Card(
+                          elevation: 10,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                          SizedBox(height: isWeb ? 30 : 20),
-                          Text(
-                            'Pesquisa de Satisfação - $tipoEvento - $municipio $estado',
-                            style: TextStyle(
-                              fontSize: isWeb ? 26 : 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.indigo.shade900,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: isWeb ? 30 : 20),
-                          Flexible(
-                            child: SingleChildScrollView(
-                              child: Text(
-                                tipoEvento ==
-                                        'Comitê Executivo e de Coordenação'
-                                    ? 'Agradecemos sua participação nesta pesquisa de satisfação. Seu feedback é essencial para que possamos melhorar continuamente nossos processos e a eficácia do comitê executivo e de coordenação. Suas respostas serão tratadas com confidencialidade e utilizadas exclusivamente para fins de aprimoramento interno.'
-                                    : 'Agradecemos por participar da nossa pesquisa de satisfação. Sua opinião é fundamental para melhorarmos nossos serviços. Por favor, responda às perguntas a seguir com sinceridade.',
-                                style: TextStyle(
-                                  fontSize: isWeb ? 18 : 16,
-                                  height: 1.5,
-                                  color: Colors.grey.shade800,
+                          child: Padding(
+                            padding: EdgeInsets.all(isWeb ? 40.0 : 20.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                TweenAnimationBuilder(
+                                  tween: Tween<double>(begin: 0, end: 1),
+                                  duration: Duration(milliseconds: 500),
+                                  builder: (context, double value, child) {
+                                    return Transform.scale(
+                                      scale: value,
+                                      child: child,
+                                    );
+                                  },
+                                  child: Icon(
+                                    Icons.assignment_outlined,
+                                    size: isWeb ? 80 : 60,
+                                    color: Colors.indigo,
+                                  ),
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: isWeb ? 25 : 15),
-                          MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: TweenAnimationBuilder(
-                              tween: Tween<double>(begin: 0, end: 1),
-                              duration: Duration(milliseconds: 500),
-                              builder: (context, double value, child) {
-                                return Transform.translate(
-                                  offset: Offset(0, 20 * (1 - value)),
-                                  child: Opacity(
-                                    opacity: value,
-                                    child: child,
+                                SizedBox(height: isWeb ? 30 : 20),
+                                Text(
+                                  'Pesquisa de Satisfação - $tipoEvento - $municipio $estado',
+                                  style: TextStyle(
+                                    fontSize: isWeb ? 26 : 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.indigo.shade900,
                                   ),
-                                );
-                              },
-                              child: ElevatedButton(
-                                onPressed: _nextQuestion,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.indigo,
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: isWeb ? 20 : 16,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  elevation: 5,
-                                  shadowColor: Colors.indigo.withOpacity(0.3),
+                                  textAlign: TextAlign.center,
                                 ),
-                                child: AnimatedSwitcher(
-                                  duration: Duration(milliseconds: 300),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        'Iniciar',
-                                        style: TextStyle(
-                                          fontSize: isWeb ? 20 : 18,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
+                                SizedBox(height: isWeb ? 30 : 20),
+                                Flexible(
+                                  child: SingleChildScrollView(
+                                    child: Text(
+                                      tipoEvento ==
+                                              'Comitê Executivo e de Coordenação'
+                                          ? 'Agradecemos sua participação nesta pesquisa de satisfação. Seu feedback é essencial para que possamos melhorar continuamente nossos processos e a eficácia do comitê executivo e de coordenação. Suas respostas serão tratadas com confidencialidade e utilizadas exclusivamente para fins de aprimoramento interno.'
+                                          : 'Agradecemos por participar da nossa pesquisa de satisfação. Sua opinião é fundamental para melhorarmos nossos serviços. Por favor, responda às perguntas a seguir com sinceridade.',
+                                      style: TextStyle(
+                                        fontSize: isWeb ? 18 : 16,
+                                        height: 1.5,
+                                        color: Colors.grey.shade800,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: isWeb ? 25 : 15),
+                                MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: TweenAnimationBuilder(
+                                    tween: Tween<double>(begin: 0, end: 1),
+                                    duration: Duration(milliseconds: 500),
+                                    builder: (context, double value, child) {
+                                      return Transform.translate(
+                                        offset: Offset(0, 20 * (1 - value)),
+                                        child: Opacity(
+                                          opacity: value,
+                                          child: child,
+                                        ),
+                                      );
+                                    },
+                                    child: ElevatedButton(
+                                      onPressed: _nextQuestion,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.indigo,
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: isWeb ? 20 : 16,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                        ),
+                                        elevation: 5,
+                                        shadowColor:
+                                            Colors.indigo.withOpacity(0.3),
+                                      ),
+                                      child: AnimatedSwitcher(
+                                        duration: Duration(milliseconds: 300),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              'Iniciar',
+                                              style: TextStyle(
+                                                fontSize: isWeb ? 20 : 18,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            SizedBox(width: 10),
+                                            Icon(
+                                              Icons.arrow_forward_rounded,
+                                              size: isWeb ? 24 : 20,
+                                              color: Colors.white,
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      SizedBox(width: 10),
-                                      Icon(
-                                        Icons.arrow_forward_rounded,
-                                        size: isWeb ? 24 : 20,
-                                        color: Colors.white,
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
+                  SizedBox(height: 20),
+                  Container(
+                    height: 80,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: const Color.fromARGB(138, 255, 255, 255),
+                    ),
+                    child: Image.asset(
+                      'assets/barradelogo.png',
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                ],
               ),
             ),
           );

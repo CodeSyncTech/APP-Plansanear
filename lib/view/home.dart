@@ -66,7 +66,20 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildProfileInfo(),
           if (_accountLevel == 1) buildAdminPanel(context),
           const SizedBox(height: 30),
+          SizedBox(height: 20),
+          Container(
+            height: 80,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: const Color.fromARGB(138, 255, 255, 255),
+            ),
+            child: Image.asset(
+              'assets/barradelogo.png',
+            ),
+          ),
+          const SizedBox(height: 30),
           _buildLogoutButton(context),
+          const SizedBox(height: 30),
         ],
       ),
     );

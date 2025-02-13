@@ -165,7 +165,7 @@ class _CriarFormularioScreenState extends State<CriarFormularioScreen> {
   String? _municipioSelecionado;
 
   String _generateLink(String idFormulario) {
-    return 'https://plansanear.com.br/redeplansanea/v9#/$idFormulario';
+    return 'https://plansanear.com.br/redeplansanea/v10/#/$idFormulario';
   }
 
   Future<void> _submitForm() async {
@@ -738,6 +738,17 @@ class _ResponderFormularioScreenState extends State<ResponderFormularioScreen> {
                             },
                           ),
                         ),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Container(
+                      height: 80,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: const Color.fromARGB(138, 255, 255, 255),
+                      ),
+                      child: Image.asset(
+                        'assets/barradelogo.png',
                       ),
                     ),
                   ],

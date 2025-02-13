@@ -262,7 +262,7 @@ class _AdminScreenMapeamentoState extends State<AdminScreenMapeamento> {
   }
 
   void _copiarLink(BuildContext context, String idFormulario) {
-    const baseUrl = 'https://plansanear.com.br/redeplansanea/v9#/mapeamento/';
+    const baseUrl = 'https://plansanear.com.br/redeplansanea/v10/#/mapeamento';
     final linkCompleto = '$baseUrl/$idFormulario';
 
     Clipboard.setData(ClipboardData(text: linkCompleto)).then((_) {

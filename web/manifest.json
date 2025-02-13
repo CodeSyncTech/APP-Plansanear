@@ -1,11 +1,11 @@
 {
-    "name": "plansanearforms",
-    "short_name": "plansanearforms",
+    "name": "Redeplansanea",
+    "short_name": "Redeplansanea",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Aplicativo de apoio ao projeto Plansanear",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

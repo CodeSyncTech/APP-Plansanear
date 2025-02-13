@@ -168,7 +168,7 @@ class _CriarFormularioScreenComiteState
   String? _municipioSelecionado;
 
   String _generateLink(String idFormulario) {
-    return 'https://plansanear.com.br/redeplansanea/v9#/comite/$idFormulario';
+    return 'https://plansanear.com.br/redeplansanea/v10/#/comite/$idFormulario';
   }
 
   Future<void> _submitFormComite() async {
@@ -596,195 +596,227 @@ class _ResponderFormularioScreenComiteState
             ],
           ),
         ),
-        child: Center(
-          child: ConstrainedBox(
-            constraints:
-                BoxConstraints(maxWidth: 800), // Largura máxima para web
-            child: Padding(
-              padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-              child: SingleChildScrollView(
-                physics: AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildFormHeader(isMobile),
-                    SizedBox(height: isMobile ? 16 : 24),
-                    Card(
-                      elevation: 8,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
-                        child: Form(
-                          key: _formKey,
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              return Wrap(
-                                spacing: 20,
-                                runSpacing: 20,
-                                children: [
-                                  SizedBox(
-                                    width: constraints.maxWidth > 500
-                                        ? 500
-                                        : constraints.maxWidth,
-                                    child: Column(
-                                      children: [
-                                        _buildCustomTextField(
-                                          controller: _nomeController,
-                                          label: 'Nome Completo',
-                                          icon: Icons.person_outline,
-                                          isMobile: isMobile,
-                                        ),
-                                        SizedBox(height: isMobile ? 12 : 20),
-                                        IntlPhoneField(
-                                          controller: _telefoneController,
-                                          decoration: InputDecoration(
-                                            labelText: 'Telefone',
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
+        child: Column(
+          children: [
+            Center(
+              child: ConstrainedBox(
+                constraints:
+                    BoxConstraints(maxWidth: 800), // Largura máxima para web
+                child: Padding(
+                  padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
+                  child: SingleChildScrollView(
+                    physics: AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildFormHeader(isMobile),
+                        SizedBox(height: isMobile ? 16 : 24),
+                        Card(
+                          elevation: 8,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
+                            child: Form(
+                              key: _formKey,
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return Wrap(
+                                    spacing: 20,
+                                    runSpacing: 20,
+                                    children: [
+                                      SizedBox(
+                                        width: constraints.maxWidth > 500
+                                            ? 500
+                                            : constraints.maxWidth,
+                                        child: Column(
+                                          children: [
+                                            _buildCustomTextField(
+                                              controller: _nomeController,
+                                              label: 'Nome Completo',
+                                              icon: Icons.person_outline,
+                                              isMobile: isMobile,
                                             ),
-                                            fillColor: Colors.blue.shade50,
-                                            filled: true,
-                                          ),
-                                          initialCountryCode:
-                                              'BR', // Define o Brasil como padrão (+55)
-                                          onChanged: (phone) {
-                                            setState(() {
-                                              _telefoneCompleto = phone
-                                                  .completeNumber; // Captura o telefone formatado
-                                            });
-                                          },
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.number.isEmpty) {
-                                              return 'Informe um número de telefone válido';
-                                            }
-                                            return null;
-                                          },
-                                        ),
-                                        SizedBox(height: isMobile ? 12 : 20),
-                                        _buildCustomTextField(
-                                          controller: _vinculoController,
-                                          label:
-                                              'Vínculo (Órgão/Instituição/Setor/)',
-                                          icon: Icons.link_outlined,
-                                          isMobile: isMobile,
-                                        ),
-                                        SizedBox(height: isMobile ? 16 : 30),
-                                        DropdownButtonFormField<String>(
-                                          isExpanded: true,
-                                          value: _comiteSelecionado,
-                                          decoration: InputDecoration(
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            fillColor: Colors.blue.shade50,
-                                            filled: true,
-                                            contentPadding:
-                                                const EdgeInsets.all(9),
-                                            hintText: 'Selecione um comitê',
-                                          ),
-                                          items: comites.map((String comite) {
-                                            return DropdownMenuItem<String>(
-                                              value: comite,
-                                              child: Text(comite,
-                                                  style: const TextStyle(
-                                                      fontSize: 16)),
-                                            );
-                                          }).toList(),
-                                          onChanged: (value) {
-                                            setState(() {
-                                              _comiteSelecionado = value;
-                                            });
-                                          },
-                                          validator: (value) => value == null
-                                              ? 'Selecione um comitê'
-                                              : null,
-                                        ),
-                                        SizedBox(height: isMobile ? 16 : 30),
-                                        AnimatedContainer(
-                                          duration: Duration(milliseconds: 300),
-                                          width: constraints.maxWidth > 400
-                                              ? 400
-                                              : double.infinity,
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                            gradient: LinearGradient(
-                                              colors: [
-                                                Colors.blue.shade600,
-                                                Colors.blueAccent.shade400,
-                                              ],
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.blue
-                                                    .withOpacity(0.3),
-                                                blurRadius: 10,
-                                                offset: Offset(0, 4),
+                                            SizedBox(
+                                                height: isMobile ? 12 : 20),
+                                            IntlPhoneField(
+                                              controller: _telefoneController,
+                                              decoration: InputDecoration(
+                                                labelText: 'Telefone',
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                fillColor: Colors.blue.shade50,
+                                                filled: true,
                                               ),
-                                            ],
-                                          ),
-                                          child: ElevatedButton(
-                                            onPressed: _submitResponseComite,
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              shadowColor: Colors.transparent,
-                                              padding: EdgeInsets.symmetric(
-                                                vertical: isMobile ? 14 : 16,
+                                              initialCountryCode:
+                                                  'BR', // Define o Brasil como padrão (+55)
+                                              onChanged: (phone) {
+                                                setState(() {
+                                                  _telefoneCompleto = phone
+                                                      .completeNumber; // Captura o telefone formatado
+                                                });
+                                              },
+                                              validator: (value) {
+                                                if (value == null ||
+                                                    value.number.isEmpty) {
+                                                  return 'Informe um número de telefone válido';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+                                            SizedBox(
+                                                height: isMobile ? 12 : 20),
+                                            _buildCustomTextField(
+                                              controller: _vinculoController,
+                                              label:
+                                                  'Vínculo (Órgão/Instituição/Setor/)',
+                                              icon: Icons.link_outlined,
+                                              isMobile: isMobile,
+                                            ),
+                                            SizedBox(
+                                                height: isMobile ? 16 : 30),
+                                            DropdownButtonFormField<String>(
+                                              isExpanded: true,
+                                              value: _comiteSelecionado,
+                                              decoration: InputDecoration(
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                fillColor: Colors.blue.shade50,
+                                                filled: true,
+                                                contentPadding:
+                                                    const EdgeInsets.all(9),
+                                                hintText: 'Selecione um comitê',
                                               ),
-                                              shape: RoundedRectangleBorder(
+                                              items:
+                                                  comites.map((String comite) {
+                                                return DropdownMenuItem<String>(
+                                                  value: comite,
+                                                  child: Text(comite,
+                                                      style: const TextStyle(
+                                                          fontSize: 16)),
+                                                );
+                                              }).toList(),
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  _comiteSelecionado = value;
+                                                });
+                                              },
+                                              validator: (value) =>
+                                                  value == null
+                                                      ? 'Selecione um comitê'
+                                                      : null,
+                                            ),
+                                            SizedBox(
+                                                height: isMobile ? 16 : 30),
+                                            AnimatedContainer(
+                                              duration:
+                                                  Duration(milliseconds: 300),
+                                              width: constraints.maxWidth > 400
+                                                  ? 400
+                                                  : double.infinity,
+                                              decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(15),
-                                              ),
-                                            ),
-                                            child: FittedBox(
-                                              fit: BoxFit.scaleDown,
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Icon(
-                                                    Icons.send_to_mobile,
-                                                    size: isMobile ? 20 : 24,
-                                                    color: Colors.white,
-                                                  ),
-                                                  SizedBox(
-                                                      width: isMobile ? 8 : 12),
-                                                  Text(
-                                                    'ENVIAR RESPOSTA',
-                                                    style: TextStyle(
-                                                      fontSize:
-                                                          isMobile ? 14 : 16,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      letterSpacing: 1.2,
-                                                      color: Colors.white,
-                                                    ),
+                                                gradient: LinearGradient(
+                                                  colors: [
+                                                    Colors.blue.shade600,
+                                                    Colors.blueAccent.shade400,
+                                                  ],
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.blue
+                                                        .withOpacity(0.3),
+                                                    blurRadius: 10,
+                                                    offset: Offset(0, 4),
                                                   ),
                                                 ],
                                               ),
+                                              child: ElevatedButton(
+                                                onPressed:
+                                                    _submitResponseComite,
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      Colors.transparent,
+                                                  shadowColor:
+                                                      Colors.transparent,
+                                                  padding: EdgeInsets.symmetric(
+                                                    vertical:
+                                                        isMobile ? 14 : 16,
+                                                  ),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            15),
+                                                  ),
+                                                ),
+                                                child: FittedBox(
+                                                  fit: BoxFit.scaleDown,
+                                                  child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.send_to_mobile,
+                                                        size:
+                                                            isMobile ? 20 : 24,
+                                                        color: Colors.white,
+                                                      ),
+                                                      SizedBox(
+                                                          width: isMobile
+                                                              ? 8
+                                                              : 12),
+                                                      Text(
+                                                        'ENVIAR RESPOSTA',
+                                                        style: TextStyle(
+                                                          fontSize: isMobile
+                                                              ? 14
+                                                              : 16,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          letterSpacing: 1.2,
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
                                             ),
-                                          ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        SizedBox(height: 20),
+                        Container(
+                          height: 80,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: const Color.fromARGB(138, 255, 255, 255),
+                          ),
+                          child: Image.asset(
+                            'assets/barradelogo.png',
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

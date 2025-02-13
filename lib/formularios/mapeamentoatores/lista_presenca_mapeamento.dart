@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -504,12 +505,20 @@ class _ResponderFormularioScreenMapeamentoState
 
   Map<String, List<Map<String, String>>> representantes = {};
 
+  // Mapas para armazenar os controllers de cada campo.
+  Map<String, List<TextEditingController>> _nomeControllers = {};
+  Map<String, List<TextEditingController>> _cargoControllers = {};
+  Map<String, List<TextEditingController>> _telefoneControllers = {};
+
   @override
   void initState() {
     super.initState();
     _fetchFormularioInfo();
     for (var categoria in categorias) {
       representantes[categoria] = [];
+      _nomeControllers[categoria] = [];
+      _cargoControllers[categoria] = [];
+      _telefoneControllers[categoria] = [];
     }
   }
 
@@ -520,23 +529,41 @@ class _ResponderFormularioScreenMapeamentoState
         'cargo': '',
         'telefone': '',
       });
+      // Cria e armazena os controllers correspondentes.
+      _nomeControllers[categoria]?.add(TextEditingController());
+      _cargoControllers[categoria]?.add(TextEditingController());
+      _telefoneControllers[categoria]?.add(TextEditingController());
     });
   }
 
   void _removerRepresentante(String categoria, int index) {
     setState(() {
       representantes[categoria]?.removeAt(index);
+      // Dispose dos controllers antes de removê-los.
+      _nomeControllers[categoria]?[index].dispose();
+      _cargoControllers[categoria]?[index].dispose();
+      _telefoneControllers[categoria]?[index].dispose();
+      _nomeControllers[categoria]?.removeAt(index);
+      _cargoControllers[categoria]?.removeAt(index);
+      _telefoneControllers[categoria]?.removeAt(index);
     });
   }
 
   Future<void> _submitResponseMapeamento() async {
     if (_formKey.currentState!.validate()) {
-      final user = _auth.currentUser!;
-
+      for (var categoria in categorias) {
+        for (int i = 0; i < representantes[categoria]!.length; i++) {
+          representantes[categoria]![i]['nome'] =
+              _nomeControllers[categoria]![i].text;
+          representantes[categoria]![i]['cargo'] =
+              _cargoControllers[categoria]![i].text;
+          representantes[categoria]![i]['telefone'] =
+              _telefoneControllers[categoria]![i].text;
+        }
+      }
       // Estrutura correta para salvar no Firestore
       Map<String, dynamic> responseData = {
         'idFormulario': widget.idFormulario,
-        'autor': user.displayName ?? user.email!,
         'dataResposta': DateTime.now().toIso8601String(),
         'representantes': {},
       };
@@ -557,7 +584,7 @@ class _ResponderFormularioScreenMapeamentoState
         ),
       );
 
-      Navigator.pop(context);
+      GoRouter.of(context).go('/forms/respondido');
     }
   }
 
@@ -579,6 +606,26 @@ class _ResponderFormularioScreenMapeamentoState
   }
 
   @override
+  void dispose() {
+    // Dispose de todos os controllers.
+    _nomeControllers.forEach((key, controllers) {
+      for (var c in controllers) {
+        c.dispose();
+      }
+    });
+    _cargoControllers.forEach((key, controllers) {
+      for (var c in controllers) {
+        c.dispose();
+      }
+    });
+    _telefoneControllers.forEach((key, controllers) {
+      for (var c in controllers) {
+        c.dispose();
+      }
+    });
+    super.dispose();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
@@ -685,6 +732,18 @@ class _ResponderFormularioScreenMapeamentoState
                   ),
                 ),
               ),
+              SizedBox(height: 20),
+              Container(
+                height: 80,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: const Color.fromARGB(138, 255, 255, 255),
+                ),
+                child: Image.asset(
+                  'assets/barradelogo.png',
+                ),
+              ),
+              const SizedBox(height: 30),
             ],
           ),
         ),
@@ -715,14 +774,24 @@ class _ResponderFormularioScreenMapeamentoState
             representantes[categoria]!.length,
             (index) => _buildRepresentanteFields(categoria, index),
           ),
-          SizedBox(height: 10),
-          _buildAddButton(categoria),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.add_circle, color: Colors.white),
+            label: const Text('Adicionar Representante',
+                style: TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 0, 124, 110),
+              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
+            ),
+            onPressed: () => _adicionarRepresentante(categoria),
+          ),
+          const SizedBox(height: 10),
         ],
       ),
     );
   }
 
+  // Modifique o _buildRepresentanteFields para atribuir os valores iniciais dos campos
   Widget _buildRepresentanteFields(String categoria, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
@@ -734,52 +803,72 @@ class _ResponderFormularioScreenMapeamentoState
       ),
       child: Column(
         children: [
-          _buildCustomTextField(
-            label: 'Nome Completo',
-            icon: Icons.person,
-            onChanged: (value) =>
-                representantes[categoria]?[index]['nome'] = value,
-          ),
-          _buildCustomTextField(
-            label: 'Cargo/Instituição',
-            icon: Icons.work,
-            onChanged: (value) =>
-                representantes[categoria]?[index]['cargo'] = value,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: IntlPhoneField(
-              decoration: InputDecoration(
-                labelText: 'Telefone',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: true,
-                fillColor: Colors.white,
-                prefixIcon: Icon(Icons.phone, color: Colors.teal.shade700),
-                contentPadding: const EdgeInsets.symmetric(vertical: 15),
+          TextFormField(
+            controller: _nomeControllers[categoria]![index],
+            decoration: InputDecoration(
+              labelText: 'Nome Completo',
+              prefixIcon: Icon(Icons.person, color: Colors.teal.shade700),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              style: TextStyle(color: Colors.teal.shade900),
-              dropdownTextStyle: TextStyle(color: Colors.teal.shade900),
-              initialCountryCode: 'BR',
-              onChanged: (phone) {
-                setState(() {
-                  representantes[categoria]?[index]['telefone'] =
-                      phone.completeNumber;
-                });
-              },
-              validator: (phone) {
-                if (phone == null || phone.number.isEmpty) {
-                  return 'Informe um número válido';
-                }
-                return null;
-              },
             ),
+            style: TextStyle(color: Colors.teal.shade900),
+            onChanged: (value) {
+              representantes[categoria]?[index]['nome'] = value;
+            },
+            validator: (value) => value!.isEmpty ? 'Campo obrigatório' : null,
+          ),
+          const SizedBox(height: 15),
+          TextFormField(
+            controller: _cargoControllers[categoria]![index],
+            decoration: InputDecoration(
+              labelText: 'Cargo/Instituição',
+              prefixIcon: Icon(Icons.work, color: Colors.teal.shade700),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            style: TextStyle(color: Colors.teal.shade900),
+            onChanged: (value) {
+              representantes[categoria]?[index]['cargo'] = value;
+            },
+            validator: (value) => value!.isEmpty ? 'Campo obrigatório' : null,
+          ),
+          const SizedBox(height: 15),
+          IntlPhoneField(
+            controller: _telefoneControllers[categoria]![index],
+            decoration: InputDecoration(
+              labelText: 'Telefone',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              prefixIcon: Icon(Icons.phone, color: Colors.teal.shade700),
+              contentPadding: const EdgeInsets.symmetric(vertical: 15),
+            ),
+            style: TextStyle(color: Colors.teal.shade900),
+            dropdownTextStyle: TextStyle(color: Colors.teal.shade900),
+            initialCountryCode: 'BR',
+            onChanged: (phone) {
+              representantes[categoria]?[index]['telefone'] =
+                  phone.completeNumber;
+            },
+            validator: (phone) {
+              if (phone == null || phone.number.isEmpty) {
+                return 'Informe um número válido';
+              }
+              return null;
+            },
           ),
           Align(
             alignment: Alignment.centerRight,
             child: IconButton(
-              icon: Icon(Icons.remove_circle, color: Colors.red),
+              icon: const Icon(Icons.remove_circle, color: Colors.red),
               onPressed: () => _removerRepresentante(categoria, index),
             ),
           ),
@@ -788,14 +877,17 @@ class _ResponderFormularioScreenMapeamentoState
     );
   }
 
+// Adapte o _buildCustomTextField para aceitar um initialValue
   Widget _buildCustomTextField({
     required String label,
     required IconData icon,
     required Function(String) onChanged,
+    String? initialValue,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: TextFormField(
+        initialValue: initialValue,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon, color: Colors.teal.shade700),
@@ -815,9 +907,10 @@ class _ResponderFormularioScreenMapeamentoState
   Widget _buildAddButton(String categoria) {
     return ElevatedButton.icon(
       icon: Icon(Icons.add_circle, color: Colors.white),
-      label: const Text('Adicionar Representante'),
+      label: Text('Adicionar Representante',
+          style: TextStyle(color: Colors.white)),
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color.fromARGB(255, 121, 237, 224),
+        backgroundColor: const Color.fromARGB(255, 0, 124, 110),
         padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
       ),
       onPressed: () => _adicionarRepresentante(categoria),
