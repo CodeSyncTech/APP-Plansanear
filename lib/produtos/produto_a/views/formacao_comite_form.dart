@@ -51,9 +51,10 @@ class _FormacaoComiteFormState extends State<FormacaoComiteForm> {
       "Suplente Téc. Informática",
       "Secretário Comitê Executivo",
       "Suplente Secretário Comitê Executivo",
-      "Téc. Municipal Saneamento",
-      "Suplente Téc. Municipal Saneamento",
+      "Representante Municipal de Secretarias Ligadas ao Saneamento",
+      "Suplente Representante Municipal de Secretarias Ligadas ao Saneamento",
       "Representante Téc. Prestador Serviço",
+      "Suplente Téc. Prestador Serviço",
       "Conselheiro Municipal",
       "Suplente Conselheiro Municipal",
       "Profissional Órgão Adm",
@@ -186,12 +187,14 @@ class _FormacaoComiteFormState extends State<FormacaoComiteForm> {
     "Secretário Comitê Executivo": "Secretário(a) do Comitê Executivo",
     "Suplente Secretário Comitê Executivo":
         "Suplente - Secretário(a) do Comitê Executivo",
-    "Téc. Municipal Saneamento":
+    "Representante Municipal de Secretarias Ligadas ao Saneamento":
         "Técnicos que atuam como profissionais dos órgãos e entidades municipais da área de saneamento básico e secretarias afins, preferencialmente servidores efetivos (Obras, Serviços Públicos, Urbanismo, Saúde, Planejamento, Desenvolvimento Econômico, Meio Ambiente, Assistência Social, Educação, entre outras da Prefeitura Municipal)",
-    "Suplente Téc. Municipal Saneamento":
+    "Suplente Representante Municipal de Secretarias Ligadas ao Saneamento":
         "Suplente - Técnicos que atuam como profissionais dos órgãos e entidades municipais da área de saneamento básico e secretarias afins, preferencialmente servidores efetivos (Obras, Serviços Públicos, Urbanismo, Saúde, Planejamento, Desenvolvimento Econômico, Meio Ambiente, Assistência Social, Educação, entre outras da Prefeitura Municipal)",
     "Representante Téc. Prestador Serviço":
         "Representantes técnicos dos prestadores de serviços (autarquias municipais, concessionárias estaduais, operadores privados, entre outros, que prestam o serviço de manejo de resíduos sólidos, abastecimento de água, esgotamento sanitário, e drenagem e manejo de águas pluviais). Ex: COMPESA, SAAE, EMBASA, CEDAE",
+    "Suplente Téc. Prestador Serviço":
+        "Suplente - Representantes técnicos dos prestadores de serviços (autarquias municipais, concessionárias estaduais, operadores privados, entre outros, que prestam o serviço de manejo de resíduos sólidos, abastecimento de água, esgotamento sanitário, e drenagem e manejo de águas pluviais). Ex: COMPESA, SAAE, EMBASA, CEDAE",
     "Conselheiro Municipal":
         "Conselheiros Municipais que representam a sociedade civil nos Conselhos de Políticas Públicas (de Saúde, de Meio Ambiente, de Habitação, de Assistência Social, de Educação, de Habitação de Interesse Social, entre outros)",
     "Suplente Conselheiro Municipal":
