@@ -1,4 +1,9 @@
+import 'dart:io';
+
 import 'package:Redeplansanea/produtos/produto_a/produto_a.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -166,42 +171,128 @@ class AcessoMunicipioScreen extends StatefulWidget {
 class _AcessoMunicipioScreenState extends State<AcessoMunicipioScreen> {
   final _formKey = GlobalKey<FormState>();
 
+  // variaveis para receber URL e arquivo da lei organica
+  PlatformFile? _selectedFile;
+  String? _leiOrganicaFileUrl;
+  String? _leiOrganicaFileName;
+  String? _leiOrganicaNumber;
+
+  TextEditingController _leiOrganicaNumberController = TextEditingController();
+
+  // variavel bool para  controlar upload de arquivo
+
+  bool _isUploading = false;
+
+  //variaveis para controle de animação de envio de documentos para o firebase
+
   // Vias de acesso – seleção múltipla
   final List<String> accessRoutes = ["Rodovia", "Ferrovia", "Hidrovia"];
   List<String> selectedAccessRoutes = [];
 
-  // Pergunta sobre Lei Orgânica (resposta única)
-  UniqueQuestion leiOrganicaQuestion = UniqueQuestion(
-    id: "leiOrganica",
-    question: "Informe o número da Lei Orgânica e envie-a em anexo",
-    options: ["Sim, em anexo", "Não"],
-  );
+  Future<void> pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'doc', 'docx'],
+    );
+    if (result != null && result.files.isNotEmpty) {
+      setState(() {
+        _selectedFile = result.files.first;
+        // Se um novo arquivo for escolhido, limpa o URL anterior
+        _leiOrganicaFileUrl = null;
+      });
+    }
+  }
+
+  Future<String?> uploadFile(PlatformFile file) async {
+    final storageRef = FirebaseStorage.instance.ref();
+    final fileRef =
+        storageRef.child("lei_organica_files/${getUserUID()}_${file.name}");
+    UploadTask uploadTask;
+
+    if (kIsWeb) {
+      // No Flutter Web, utilize os bytes do arquivo
+      if (file.bytes == null) {
+        throw Exception("Nenhum dado encontrado no arquivo selecionado.");
+      }
+      uploadTask = fileRef.putData(file.bytes!);
+    } else {
+      // Para dispositivos móveis/desktop, utilize o arquivo do sistema
+      File localFile = File(file.path!);
+      uploadTask = fileRef.putFile(localFile);
+    }
+
+    TaskSnapshot snapshot = await uploadTask;
+    return await snapshot.ref.getDownloadURL();
+  }
 
   @override
   void initState() {
     super.initState();
+
     carregarRespostas().then((respostas) {
       setState(() {
-        if (respostas["accessRoutes"] != null &&
-            respostas["accessRoutes"] is List) {
-          selectedAccessRoutes =
-              List<String>.from(respostas["accessRoutes"] as List);
-        }
-        leiOrganicaQuestion.selected = respostas["leiOrganica"] as String?;
-        leiOrganicaQuestion.extra = respostas["leiOrganicaNumber"] as String?;
+        // Carrega as vias de acesso
+        selectedAccessRoutes =
+            List<String>.from(respostas["accessRoutes"] ?? []);
+
+        // Carrega o número da lei (convertendo para String se necessário)
+        _leiOrganicaNumber = respostas["leiOrganicaNumber"]?.toString() ?? '';
+
+        // Atualiza o controlador do campo de texto
+        _leiOrganicaNumberController.text = _leiOrganicaNumber!;
+
+        // Carrega os dados do arquivo
+        _leiOrganicaFileUrl = respostas["leiOrganicaFileUrl"] as String?;
+        _leiOrganicaFileName = respostas["leiOrganicaFileName"] as String?;
       });
     });
   }
 
   void salvarEAvancar() async {
-    if (_formKey.currentState?.validate() ?? false) {
+    if ((_formKey.currentState?.validate() ?? false) && !_isUploading) {
+      setState(() => _isUploading = true);
+      // Validação do número da lei
+      if (_leiOrganicaNumber == null || _leiOrganicaNumber!.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Informe o número da Lei Orgânica")),
+        );
+        setState(() => _isUploading = false); // Adicione esta linha
+        return;
+      }
+
+// Validação do arquivo
+      if (_leiOrganicaFileUrl == null && _selectedFile == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Anexe o arquivo da Lei Orgânica")),
+        );
+        setState(() => _isUploading = false); // Adicione esta linha
+        return;
+      }
+
+      // Upload do arquivo se necessário
+      if (_selectedFile != null) {
+        try {
+          String? fileUrl = await uploadFile(_selectedFile!);
+          if (fileUrl == null) return;
+          _leiOrganicaFileUrl = fileUrl;
+          _leiOrganicaFileName = _selectedFile!.name;
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Erro no upload: ${e.toString()}")),
+          );
+          setState(() => _isUploading = false);
+          return;
+        }
+      }
+
       await salvarRespostas({
         "accessRoutes": selectedAccessRoutes,
-        "leiOrganica": leiOrganicaQuestion.selected,
-        "leiOrganicaNumber": leiOrganicaQuestion.selected == "Sim, em anexo"
-            ? leiOrganicaQuestion.extra
-            : null,
+        "leiOrganicaNumber": _leiOrganicaNumber,
+        "leiOrganicaFileUrl": _leiOrganicaFileUrl,
+        "leiOrganicaFileName": _leiOrganicaFileName,
       });
+
+      setState(() => _isUploading = false); // Finaliza o loading
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => ComunicacaoScreen()),
@@ -443,25 +534,97 @@ class _AcessoMunicipioScreenState extends State<AcessoMunicipioScreen> {
         ),
         child: Padding(
           padding: EdgeInsets.all(20),
-          child: DropdownQuestionWidget(
-            question: leiOrganicaQuestion,
-            requiredExtraOption: "Sim, em anexo",
-            extraLabel: "Número da Lei Orgânica",
-            onChanged: (value) {
-              setState(() {
-                leiOrganicaQuestion.selected = value;
-                if (value != "Sim, em anexo") {
-                  leiOrganicaQuestion.extra = null;
-                }
-              });
-            },
-            onExtraChanged: (value) {
-              setState(() {
-                leiOrganicaQuestion.extra = value;
-              });
-            },
+          child: Column(
+            children: [
+              Text(
+                "Anexe a Lei Orgânica do Município:",
+                style: GoogleFonts.roboto(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey.shade800,
+                ),
+              ),
+              SizedBox(height: 18),
+              TextFormField(
+                controller: _leiOrganicaNumberController,
+                decoration: InputDecoration(
+                  labelText: "Número da Lei Orgânica",
+                  hintText: "Digite o número completo da lei",
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) => _leiOrganicaNumber = value,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Campo obrigatório";
+                  }
+                  return null;
+                },
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 14),
+                  _isUploading // Mostra o indicador durante o upload
+                      ? _buildUploadProgress()
+                      : _leiOrganicaFileUrl != null
+                          ? Row(
+                              children: [
+                                Expanded(
+                                  child: ListTile(
+                                    leading: Icon(Icons.check_circle,
+                                        color: Colors.green),
+                                    title: Text("Arquivo anexado"),
+                                    subtitle: Text(_selectedFile?.name ??
+                                        _leiOrganicaFileName ??
+                                        "Arquivo previamente enviado"),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: pickFile,
+                                  child: Text("Alterar"),
+                                ),
+                              ],
+                            )
+                          : ElevatedButton.icon(
+                              onPressed: pickFile,
+                              icon: Icon(Icons.attach_file),
+                              label: Text(_selectedFile != null
+                                  ? "Arquivo selecionado: ${_selectedFile!.name}"
+                                  : "Selecionar arquivo (.pdf, .doc, .docx)"),
+                            ),
+                  if (_leiOrganicaFileUrl == null && _selectedFile == null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text("Nenhum arquivo selecionado",
+                          style: TextStyle(color: Colors.red)),
+                    ),
+                ],
+              ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildUploadProgress() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 20),
+      child: Column(
+        children: [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade800),
+            strokeWidth: 3,
+          ),
+          SizedBox(height: 10),
+          Text(
+            "Enviando arquivo...",
+            style: TextStyle(
+              color: Colors.blue.shade800,
+              fontSize: 14,
+            ),
+          )
+        ],
       ),
     );
   }
@@ -473,11 +636,13 @@ class _AcessoMunicipioScreenState extends State<AcessoMunicipioScreen> {
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            gradient: LinearGradient(
-              colors: [Color(0xFF1A237E), Color(0xFF3949AB)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: _isUploading
+                ? LinearGradient(colors: [Colors.grey, Colors.grey])
+                : LinearGradient(
+                    colors: [Color(0xFF1A237E), Color(0xFF3949AB)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
             boxShadow: [
               BoxShadow(
                 color: Color(0x331A237E),
@@ -487,7 +652,7 @@ class _AcessoMunicipioScreenState extends State<AcessoMunicipioScreen> {
             ],
           ),
           child: ElevatedButton(
-            onPressed: salvarEAvancar,
+            onPressed: _isUploading ? null : salvarEAvancar,
             style: ElevatedButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               shape: RoundedRectangleBorder(
@@ -496,14 +661,23 @@ class _AcessoMunicipioScreenState extends State<AcessoMunicipioScreen> {
               backgroundColor: Colors.transparent,
               shadowColor: Colors.transparent,
             ),
-            child: Text(
-              "Próximo",
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
+            child: _isUploading
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : Text(
+                    "Próximo",
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
           ),
         ),
       ],
@@ -1384,7 +1558,3 @@ class _SaneamentoScreenState extends State<SaneamentoScreen> {
     );
   }
 }
-
-/// ------------------------------------------------------------
-/// Tela Final: Menu do Produto A (Dummy)
-/// ------------------------------------------------------------

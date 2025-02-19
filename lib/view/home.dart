@@ -1,3 +1,5 @@
+import 'package:Redeplansanea/produtos/produto_a/views/formacao_comite_form.dart';
+import 'package:Redeplansanea/view/painelAdmin/ProdutoA/padmin_formacaocomite.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -722,68 +724,74 @@ class _UserListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return GestureDetector(
+      onTap: () => _showUserOptions(
+          context, docId), // Adicionado evento de clique no card
+      child: Card(
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 1),
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundColor:
-                      Theme.of(context).primaryColor.withOpacity(0.2),
-                  child:
-                      Icon(Icons.person, color: Theme.of(context).primaryColor),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    userData['name'] ?? 'Sem nome',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor:
+                          Theme.of(context).primaryColor.withOpacity(0.2),
+                      child: Icon(Icons.person,
+                          color: Theme.of(context).primaryColor),
                     ),
-                  ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        userData['name'] ?? 'Sem nome',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                    _buildActionButtons(),
+                  ],
                 ),
-                _buildActionButtons(),
+                const SizedBox(height: 12),
+                _buildDivider(),
+                const SizedBox(height: 8),
+                _buildUserDetailItem(
+                  icon: Icons.email,
+                  label: 'Email:',
+                  value: userData['email'] ?? 'Não informado',
+                ),
+                _buildUserDetailItem(
+                  icon: Icons.work,
+                  label: 'Cargo:',
+                  value: userData['cargo'] ?? 'Não informado',
+                ),
+                _buildUserDetailItem(
+                  icon: Icons.stacked_line_chart,
+                  label: 'Nível:',
+                  value: userData['nivelConta']?.toString() ?? '2',
+                ),
+                _buildUserDetailItem(
+                  icon: Icons.location_city,
+                  label: 'Município:',
+                  value: userData['municipio'] ?? 'Não informado',
+                ),
+                _buildUserDetailItem(
+                  icon: Icons.place,
+                  label: 'Estado:',
+                  value: userData['estado'] ?? 'Não informado',
+                ),
               ],
             ),
-            const SizedBox(height: 12),
-            _buildDivider(),
-            const SizedBox(height: 8),
-            _buildUserDetailItem(
-              icon: Icons.email,
-              label: 'Email:',
-              value: userData['email'] ?? 'Não informado',
-            ),
-            _buildUserDetailItem(
-              icon: Icons.work,
-              label: 'Cargo:',
-              value: userData['cargo'] ?? 'Não informado',
-            ),
-            _buildUserDetailItem(
-              icon: Icons.stacked_line_chart,
-              label: 'Nível:',
-              value: userData['nivelConta']?.toString() ?? '2',
-            ),
-            _buildUserDetailItem(
-              icon: Icons.location_city,
-              label: 'Município:',
-              value: userData['municipio'] ?? 'Não informado',
-            ),
-            _buildUserDetailItem(
-              icon: Icons.place,
-              label: 'Estado:',
-              value: userData['estado'] ?? 'Não informado',
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -794,6 +802,83 @@ class _UserListItem extends StatelessWidget {
       height: 1,
       thickness: 1,
       color: Colors.grey.withOpacity(0.2),
+    );
+  }
+
+  void _showUserOptions(BuildContext context, String docId) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Produto A com opções agrupadas
+                ExpansionTile(
+                  leading: Icon(Icons.folder, color: Colors.blue[800]),
+                  title: const Text('Produto A'),
+                  childrenPadding: const EdgeInsets.only(left: 32.0),
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.group, color: Colors.blue[800]),
+                      title: const Text('Formação Comitê'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                FormacaoComiteInfoScreen(userId: docId),
+                          ),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading:
+                          Icon(Icons.info_outline, color: Colors.green[800]),
+                      title: const Text('Informações sobre o Município'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        // Adicione aqui a navegação para a tela correspondente
+                      },
+                    ),
+                  ],
+                ),
+                // Produto B com opções agrupadas
+                ExpansionTile(
+                  leading: Icon(Icons.folder, color: Colors.blue[800]),
+                  title: const Text('Produto B'),
+                  childrenPadding: const EdgeInsets.only(left: 32.0),
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.group, color: Colors.blue[800]),
+                      title: const Text('Opção X'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        // Adicione aqui a navegação para a tela de Opção X do Produto B
+                      },
+                    ),
+                    ListTile(
+                      leading:
+                          Icon(Icons.info_outline, color: Colors.green[800]),
+                      title: const Text('Opção Y'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        // Adicione aqui a navegação para a tela de Opção Y do Produto B
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

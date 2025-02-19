@@ -47,6 +47,8 @@ class _FormacaoComiteFormState extends State<FormacaoComiteForm> {
       "Suplente Profissional Ciências Sociais",
       "Estagiário Engenharia",
       "Suplente Estagiário Engenharia",
+      "Estagiário em Sociologia, Pedagogia ou Ciências Humanas",
+      "Suplente Estagiário em Sociologia, Pedagogia ou Ciências Humanas",
       "Téc. Informática",
       "Suplente Téc. Informática",
       "Secretário Comitê Executivo",
@@ -57,8 +59,8 @@ class _FormacaoComiteFormState extends State<FormacaoComiteForm> {
       "Suplente Téc. Prestador Serviço",
       "Conselheiro Municipal",
       "Suplente Conselheiro Municipal",
-      "Profissional Órgão Adm",
-      "Suplente Profissional Órgão Adm"
+      "Profissional Órgão Adminstração direta e indireta de outros entes da federação",
+      "Suplente Profissional Órgão Adminstração direta e indireta de outros entes da federação"
     ];
 
     Map<String, String> status = {};
@@ -170,18 +172,21 @@ class _FormacaoComiteFormState extends State<FormacaoComiteForm> {
     "Coordenador": "Engenheiro (Ambiental, Civil ou Sanitarista)",
     "Suplente Coordenador":
         "Suplente - Engenheiro (Ambiental, Civil ou Sanitarista)",
-    "Engenheiro":
-        "Profissional com formação em Ciências Sociais e Humanas (Direito, História, Geografia, Ciências Sociais, Psicologia) com destaque para Sociólogo, Pedagogo e Assistente Social",
+    "Engenheiro": "Engenheiro (Ambiental, Civil ou Sanitarista)",
     "Suplente Engenheiro":
-        "Suplente - Profissional com formação em Ciências Sociais e Humanas (Direito, História, Geografia, Ciências Sociais, Psicologia) com destaque para Sociólogo, Pedagogo e Assistente Social",
+        "Suplente - Engenheiro (Ambiental, Civil ou Sanitarista)",
     "Profissional Ciências Sociais":
-        "Estagiário em Sociologia, Pedagogia ou Ciências Humanas (Direito, História, Geografia, Psicologia, Ciências Sociais)",
+        "Formação em direito, história, geografia, ciências sociais, psicologia) com destaque para sociólogo, pedagogo e assistente social",
     "Suplente Profissional Ciências Sociais":
-        "Suplente - Estagiário em Sociologia, Pedagogia ou Ciências Humanas (Direito, História, Geografia, Psicologia, Ciências Sociais)",
+        "Suplente - Estagiário em direito, história, geografia, ciências sociais, psicologia) com destaque para sociólogo, pedagogo e assistente social",
     "Estagiário Engenharia":
         "Estagiário em Engenharia Ambiental, Civil ou Sanitária",
     "Suplente Estagiário Engenharia":
         "Suplente - Estagiário em Engenharia Ambiental, Civil ou Sanitária",
+    "Estagiário em Sociologia, Pedagogia ou Ciências Humanas":
+        "Estagiário em sociologia, pedagogia ou ciências humanas (direito, história, geografia, psicologia, ciências sociais)",
+    "Suplente Sociologia, Pedagogia ou Ciências Humanas":
+        "Suplente - Estagiário em sociologia, pedagogia ou ciências humanas (direito, história, geografia, psicologia, ciências sociais)",
     "Téc. Informática": "Técnico em Informática",
     "Suplente Téc. Informática": "Suplente - Técnico em Informática",
     "Secretário Comitê Executivo": "Secretário(a) do Comitê Executivo",
@@ -199,9 +204,9 @@ class _FormacaoComiteFormState extends State<FormacaoComiteForm> {
         "Conselheiros Municipais que representam a sociedade civil nos Conselhos de Políticas Públicas (de Saúde, de Meio Ambiente, de Habitação, de Assistência Social, de Educação, de Habitação de Interesse Social, entre outros)",
     "Suplente Conselheiro Municipal":
         "Suplente - Conselheiros Municipais que representam a sociedade civil nos Conselhos de Políticas Públicas (de Saúde, de Meio Ambiente, de Habitação, de Assistência Social, de Educação, de Habitação de Interesse Social, entre outros)",
-    "Profissional Órgão Adm":
+    "Profissional Órgão Adminstração direta e indireta de outros entes da federação":
         "Profissionais disponibilizados por órgãos da administração direta e indireta de outros entes da federação (Federal ou Estadual). Ex: MP; CODEVASF; TCU; FUNAI; IBGE; EMATER; CORREIOS; COMPESA; EMBASA; EMBRAPA; INEMA.",
-    "Suplente Profissional Órgão Adm":
+    "Suplente Profissional Órgão Adminstração direta e indireta de outros entes da federação":
         "Suplente - Profissionais disponibilizados por órgãos da administração direta e indireta de outros entes da federação (Federal ou Estadual). Ex: MP; CODEVASF; TCU; FUNAI; IBGE; EMATER; CORREIOS; COMPESA; EMBASA; EMBRAPA; INEMA.",
   };
 
@@ -391,7 +396,8 @@ class _FormacaoComiteFormState extends State<FormacaoComiteForm> {
               _buildTextField(_nomeController, "Nome Completo", Icons.person),
               _buildTextField(_cpfController, "CPF", Icons.credit_card,
                   keyboardType: TextInputType.number),
-              _buildTextField(_profissaoController, "Profissão", Icons.work),
+              _buildTextField(
+                  _profissaoController, "Profissão/Formação", Icons.work),
               _buildTextField(_funcaoController, "Função", Icons.badge),
               _buildTextField(_telefoneController, "Telefone", Icons.phone,
                   keyboardType: TextInputType.phone),

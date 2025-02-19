@@ -247,7 +247,7 @@ class _OrganizacaoMunicipioScreenState
                   Padding(
                     padding: const EdgeInsets.only(bottom: 20.0),
                     child: Text(
-                      'Conselhos e Instituições do Município',
+                      'Conselhos Municipais',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
@@ -279,7 +279,7 @@ class _OrganizacaoMunicipioScreenState
                               child: Column(
                                 children: [
                                   _buildTextField(_fields[index]["conselhos"]!,
-                                      "Conselho/Instituição"),
+                                      "Conselhos Municipais existentes"),
                                   SizedBox(height: 16),
                                   _buildTextField(_fields[index]["leiDecreto"]!,
                                       "Base Legal (Lei/Decreto)"),
