@@ -180,7 +180,6 @@ class _AcessoMunicipioScreenState extends State<AcessoMunicipioScreen> {
   TextEditingController _leiOrganicaNumberController = TextEditingController();
 
   // variavel bool para  controlar upload de arquivo
-
   bool _isUploading = false;
 
   //variaveis para controle de animação de envio de documentos para o firebase
@@ -256,16 +255,16 @@ class _AcessoMunicipioScreenState extends State<AcessoMunicipioScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Informe o número da Lei Orgânica")),
         );
-        setState(() => _isUploading = false); // Adicione esta linha
+        setState(() => _isUploading = false);
         return;
       }
 
-// Validação do arquivo
+      // Validação do arquivo
       if (_leiOrganicaFileUrl == null && _selectedFile == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Anexe o arquivo da Lei Orgânica")),
         );
-        setState(() => _isUploading = false); // Adicione esta linha
+        setState(() => _isUploading = false);
         return;
       }
 
@@ -292,7 +291,7 @@ class _AcessoMunicipioScreenState extends State<AcessoMunicipioScreen> {
         "leiOrganicaFileName": _leiOrganicaFileName,
       });
 
-      setState(() => _isUploading = false); // Finaliza o loading
+      setState(() => _isUploading = false);
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => ComunicacaoScreen()),
@@ -316,12 +315,10 @@ class _AcessoMunicipioScreenState extends State<AcessoMunicipioScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Row(
                 children: [
-                  // Conteúdo centralizado
                   Expanded(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Logo
                         Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -340,7 +337,6 @@ class _AcessoMunicipioScreenState extends State<AcessoMunicipioScreen> {
                           ],
                         ),
                         const SizedBox(width: 20),
-                        // Título
                         Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -366,8 +362,6 @@ class _AcessoMunicipioScreenState extends State<AcessoMunicipioScreen> {
                       ],
                     ),
                   ),
-
-                  // Botão de adicionar estilizado
                 ],
               ),
             ),
@@ -564,7 +558,7 @@ class _AcessoMunicipioScreenState extends State<AcessoMunicipioScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: 14),
-                  _isUploading // Mostra o indicador durante o upload
+                  _isUploading
                       ? _buildUploadProgress()
                       : _leiOrganicaFileUrl != null
                           ? Row(
@@ -693,11 +687,17 @@ class CommunicationOption {
   String name;
   bool selected;
   List<TextEditingController> contactControllers;
+  // Nova propriedade para indicar se é necessário especificar o nome
+  final bool requiresName;
+  // Define se deve permitir apenas um único campo (quando for "APENAS o nome")
+  final bool singleEntry;
 
   CommunicationOption({
     required this.name,
     this.selected = false,
     List<TextEditingController>? contactControllers,
+    this.requiresName = false,
+    this.singleEntry = false,
   }) : contactControllers = contactControllers ?? [];
 }
 
@@ -733,18 +733,44 @@ class _ComunicacaoScreenState extends State<ComunicacaoScreen> {
   @override
   void initState() {
     super.initState();
-    // Inicializa as opções pré-definidas
     communicationOptions = [
-      CommunicationOption(name: "Rádio comunitária"),
-      CommunicationOption(name: "Influenciadores digitais"),
-      CommunicationOption(name: "Carro/moto som"),
-      CommunicationOption(name: "Canais do youtube"),
-      CommunicationOption(name: "Redes sociais da prefeitura"),
-      CommunicationOption(name: "Cartaz/panfleto"),
-      CommunicationOption(name: "TV local"),
-      CommunicationOption(name: "Divulgação direta"),
-      CommunicationOption(name: "Jornal Impresso"),
-      CommunicationOption(name: "Blogs"),
+      CommunicationOption(
+          name: "Rádio comunitária",
+          requiresName: true,
+          singleEntry: false), // especificar o nome e contato
+      CommunicationOption(
+          name: "Influenciadores digitais",
+          requiresName: true,
+          singleEntry: false), // especificar o nome e contato
+      CommunicationOption(
+          name: "Carro/moto som",
+          requiresName: true,
+          singleEntry: false), // especificar o nome e contato
+      CommunicationOption(
+          name: "Canais do youtube",
+          requiresName: true,
+          singleEntry: false), // permitir adicionar mais contatos
+      CommunicationOption(
+          name: "Redes sociais da prefeitura",
+          requiresName: true,
+          singleEntry: false), // permitir adicionar mais contatos
+      CommunicationOption(
+          name: "Cartaz/panfleto",
+          requiresName: false), // NAO PRECISA ESPECIFICAR NADA
+      CommunicationOption(
+          name: "TV local",
+          requiresName: true,
+          singleEntry: false), // permitir adicionar mais contatos
+      CommunicationOption(
+          name: "Divulgação direta",
+          requiresName: false), // NAO PRECISA ESPECIFICAR NADA
+      CommunicationOption(
+          name: "Jornal Impresso",
+          requiresName: false), // NAO PRECISA ESPECIFICAR NADA
+      CommunicationOption(
+          name: "Blogs",
+          requiresName: true,
+          singleEntry: false), // permitir adicionar mais contatos
     ];
 
     // Carrega dados salvos, se existirem
@@ -802,7 +828,7 @@ class _ComunicacaoScreenState extends State<ComunicacaoScreen> {
   /// para cada entrada de "Outros", os dois campos (nome e contato) são obrigatórios.
   bool validarContatos() {
     for (var option in communicationOptions) {
-      if (option.selected) {
+      if (option.selected && option.requiresName) {
         if (option.contactControllers.isEmpty ||
             !option.contactControllers.any((c) => c.text.trim().isNotEmpty)) {
           return false;
@@ -819,31 +845,34 @@ class _ComunicacaoScreenState extends State<ComunicacaoScreen> {
   }
 
   void salvarEAvancar() async {
-    if (_formKey.currentState?.validate() ?? false) {
+    if ((_formKey.currentState?.validate() ?? false)) {
       if (!validarContatos()) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                "Preencha corretamente os contatos para cada opção e para os 'Outros'."),
+              "Preencha corretamente os contatos para cada opção e para os 'Outros'.",
+            ),
           ),
         );
         return;
       }
       Map<String, dynamic> comunicacaoData = {};
-      // Para cada opção pré-definida:
+      // Monta o objeto com os dados a serem enviados...
       for (var option in communicationOptions) {
         if (option.selected) {
-          List<String> contatos = option.contactControllers
-              .map((c) => c.text.trim())
-              .where((s) => s.isNotEmpty)
-              .toList();
-          comunicacaoData[option.name] = contatos;
+          if (option.requiresName) {
+            List<String> contatos = option.contactControllers
+                .map((c) => c.text.trim())
+                .where((s) => s.isNotEmpty)
+                .toList();
+            comunicacaoData[option.name] = contatos;
+          } else {
+            comunicacaoData[option.name] = true;
+          }
         } else {
-          // Se não estiver selecionada, remove o registro do banco.
           comunicacaoData[option.name] = FieldValue.delete();
         }
       }
-      // Para os "Outros":
       if (otherChannels.isNotEmpty) {
         List<Map<String, dynamic>> outrosList = otherChannels.map((entry) {
           return {
@@ -855,11 +884,21 @@ class _ComunicacaoScreenState extends State<ComunicacaoScreen> {
       } else {
         comunicacaoData["comunicacao_others"] = FieldValue.delete();
       }
-      await salvarRespostas({"comunicacao": comunicacaoData});
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => SaneamentoScreen()),
-      );
+
+      try {
+        await salvarRespostas({"comunicacao": comunicacaoData});
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => SaneamentoScreen()),
+        );
+      } catch (error) {
+        // Trate o erro: encerre o loading, mostre uma mensagem ao usuário, etc.
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erro ao salvar dados: ${error.toString()}")),
+        );
+        // Aqui você também pode logar o erro para análise posterior.
+      }
     }
   }
 
@@ -884,12 +923,10 @@ class _ComunicacaoScreenState extends State<ComunicacaoScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Row(
                   children: [
-                    // Conteúdo centralizado
                     Expanded(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Logo
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -908,7 +945,6 @@ class _ComunicacaoScreenState extends State<ComunicacaoScreen> {
                             ],
                           ),
                           const SizedBox(width: 20),
-                          // Título
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -940,17 +976,6 @@ class _ComunicacaoScreenState extends State<ComunicacaoScreen> {
             ),
           ),
         ),
-        /*AppBar(
-          title: Text("Meios de Comunicação",
-              style: TextStyle(fontWeight: FontWeight.w600)),
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
-            onPressed: () => Navigator.pop(context),
-            tooltip: 'Voltar',
-          ),
-          elevation: 2,
-        ),*/
-
         body: Container(
           color: Colors.grey[100],
           child: SingleChildScrollView(
@@ -979,7 +1004,8 @@ class _ComunicacaoScreenState extends State<ComunicacaoScreen> {
                             SizedBox(width: 12),
                             Flexible(
                               child: Text(
-                                "Qual a forma mais utilizada de mobilização popular para reuniões e/ou eventos sociais?",
+                                // Alteração na pergunta:
+                                "Qual é a principal forma de mobilização popular utilizada para reuniões e eventos sociais?",
                                 style: GoogleFonts.poppins(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w600,
@@ -1027,12 +1053,11 @@ class _ComunicacaoScreenState extends State<ComunicacaoScreen> {
                               onChanged: (val) {
                                 setState(() {
                                   option.selected = val ?? false;
-                                  if (option.selected) {
-                                    // Se for selecionada e não houver contato, adiciona o primeiro automaticamente.
-                                    if (option.contactControllers.isEmpty) {
-                                      option.contactControllers
-                                          .add(TextEditingController());
-                                    }
+                                  if (option.selected &&
+                                      option.requiresName &&
+                                      option.contactControllers.isEmpty) {
+                                    option.contactControllers
+                                        .add(TextEditingController());
                                   }
                                 });
                               },
@@ -1046,7 +1071,8 @@ class _ComunicacaoScreenState extends State<ComunicacaoScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            if (option.selected) ...[
+                            // Exibe os campos de contato apenas se a opção exigir especificação do nome
+                            if (option.selected && option.requiresName) ...[
                               ...option.contactControllers
                                   .asMap()
                                   .entries
@@ -1054,15 +1080,18 @@ class _ComunicacaoScreenState extends State<ComunicacaoScreen> {
                                 return _buildContactField(
                                     entry.key, entry.value, option);
                               }),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.only(left: 16, bottom: 8),
-                                child: _AddButton(
-                                  onPressed: () => adicionarContato(option),
-                                  label:
-                                      "Adicionar contato para ${option.name}",
+                              if (!option.singleEntry ||
+                                  (option.singleEntry &&
+                                      option.contactControllers.length < 1))
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 16, bottom: 8),
+                                  child: _AddButton(
+                                    onPressed: () => adicionarContato(option),
+                                    label:
+                                        "Adicionar contato para ${option.name}",
+                                  ),
                                 ),
-                              ),
                             ],
                           ],
                         ),
@@ -1070,7 +1099,7 @@ class _ComunicacaoScreenState extends State<ComunicacaoScreen> {
                     );
                   }).toList(),
 
-                  // Seção Outros
+                  // Seção Outros (mantida como estava)
                   SizedBox(height: 16),
                   Text(
                     "Canais personalizados",
@@ -1094,32 +1123,42 @@ class _ComunicacaoScreenState extends State<ComunicacaoScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      OutlinedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 28, vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF1A237E), Color(0xFF3949AB)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0x331A237E),
+                              blurRadius: 15,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: salvarEAvancar,
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 32, vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                          ),
+                          child: Text(
+                            "Próximo",
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                        child: Text("Voltar",
-                            style: TextStyle(color: Colors.grey[700])),
-                      ),
-                      SizedBox(width: 16),
-                      ElevatedButton(
-                        onPressed: salvarEAvancar,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurple,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 32, vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          elevation: 2,
-                        ),
-                        child: Text("Continuar",
-                            style: TextStyle(color: Colors.white)),
                       ),
                     ],
                   ),
@@ -1132,13 +1171,25 @@ class _ComunicacaoScreenState extends State<ComunicacaoScreen> {
 
   Widget _buildContactField(
       int idx, TextEditingController controller, CommunicationOption option) {
+    // Verifica se a opção é uma das que devem especificar nome e contato
+    bool requiresNameAndContact = option.name == "Rádio comunitária" ||
+        option.name == "Influenciadores digitais" ||
+        option.name == "Carro/moto som";
+
+    String label = requiresNameAndContact
+        ? "Nome e Contato ${idx + 1}"
+        : "Contato ${idx + 1}";
+    String hint = requiresNameAndContact
+        ? "Digite o nome e contato da ${option.name.toLowerCase()}..."
+        : "Digite o nome do ${option.name.toLowerCase()}...";
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: TextFormField(
         controller: controller,
         decoration: InputDecoration(
-          labelText: "Contato ${idx + 1}",
-          hintText: "Digite o ${option.name.toLowerCase()}...",
+          labelText: label,
+          hintText: hint,
           filled: true,
           fillColor: Colors.grey[50],
           border: OutlineInputBorder(
@@ -1223,7 +1274,6 @@ class _AddButton extends StatelessWidget {
   final IconData? icon;
 
   const _AddButton({required this.onPressed, required this.label, this.icon});
-
   @override
   Widget build(BuildContext context) {
     return TextButton(
@@ -1237,7 +1287,13 @@ class _AddButton extends StatelessWidget {
         children: [
           Icon(icon ?? Icons.add_link_rounded, size: 20),
           SizedBox(width: 8),
-          Text(label, style: TextStyle(fontWeight: FontWeight.w500)),
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(fontWeight: FontWeight.w500),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
@@ -1309,7 +1365,10 @@ class _SaneamentoScreenState extends State<SaneamentoScreen> {
       }
       await salvarRespostas(respostas);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Respostas salvas com sucesso!")),
+        SnackBar(
+          content: Text("Respostas salvas com sucesso!"),
+          backgroundColor: Colors.green,
+        ),
       );
       Navigator.pushReplacement(
         context,
@@ -1342,12 +1401,10 @@ class _SaneamentoScreenState extends State<SaneamentoScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Row(
                 children: [
-                  // Conteúdo centralizado
                   Expanded(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Logo
                         Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -1366,7 +1423,6 @@ class _SaneamentoScreenState extends State<SaneamentoScreen> {
                           ],
                         ),
                         const SizedBox(width: 20),
-                        // Título
                         Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1392,8 +1448,6 @@ class _SaneamentoScreenState extends State<SaneamentoScreen> {
                       ],
                     ),
                   ),
-
-                  // Botão de adicionar estilizado
                 ],
               ),
             ),
@@ -1526,33 +1580,41 @@ class _SaneamentoScreenState extends State<SaneamentoScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ElevatedButton(
-          onPressed: () => Navigator.pop(context),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.grey[700],
-            padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.grey[300]!),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            gradient: LinearGradient(
+              colors: [Color(0xFF1A237E), Color(0xFF3949AB)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x331A237E),
+                blurRadius: 15,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ElevatedButton(
+            onPressed: salvar,
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+            ),
+            child: Text(
+              "Salvar Dados",
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
             ),
           ),
-          child: Text("Voltar", style: TextStyle(fontWeight: FontWeight.w500)),
-        ),
-        SizedBox(width: 16),
-        ElevatedButton(
-          onPressed: salvar,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primaryColor,
-            foregroundColor: Colors.white,
-            padding: EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            elevation: 1,
-          ),
-          child: Text("Salvar Dados",
-              style: TextStyle(fontWeight: FontWeight.w600)),
         ),
       ],
     );

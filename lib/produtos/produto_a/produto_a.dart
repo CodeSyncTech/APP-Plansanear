@@ -2,7 +2,9 @@ import 'package:Redeplansanea/formularios/presenca/todas_respostas.dart';
 import 'package:Redeplansanea/main.dart';
 import 'package:Redeplansanea/produtos/produto_a/infoMunicipios/paginarespostas.dart';
 import 'package:Redeplansanea/produtos/produto_a/infosetor/setor.dart';
+import 'package:Redeplansanea/produtos/produto_a/instituicoes_setor/instituicoes_setor.dart';
 import 'package:Redeplansanea/produtos/produto_a/organizacaosocial/organizacao.dart';
+import 'package:Redeplansanea/produtos/produto_a/principais_liderancas/p_liderancas.dart';
 import 'package:Redeplansanea/produtos/produto_a/views/formacao_comite_form.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -339,6 +341,77 @@ class _ProdutoA_menuState extends State<ProdutoA_menu> {
                     subtitle:
                         'Seu nível de conta não permite acessar essa funcionalidade',
                     imagePath: 'assets/ico_infosaneamento.png',
+                  ),
+
+                if ((userData?['nivelConta'] ?? 2) != 2)
+                  buildAnimatedCard(
+                    context,
+                    title: 'Instituições Sociais do Município por Setor',
+                    subtitle: 'Instituições Sociais do Município por Setor',
+                    imagePath: 'assets/ico_instituicoessetor.png',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        PageRouteBuilder(
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  AtribuirInstituicoesScreen(),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            final fadeAnimation = CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeInOut,
+                            );
+                            return FadeTransition(
+                              opacity: fadeAnimation,
+                              child: child,
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  )
+                else
+                  buildDisabledAnimatedCard(
+                    context,
+                    title: 'Instituições Sociais',
+                    subtitle: 'Instituições Sociais do Município no Setor',
+                    imagePath: 'assets/ico_instituicoessetor.png',
+                  ),
+                if ((userData?['nivelConta'] ?? 2) != 2)
+                  buildAnimatedCard(
+                    context,
+                    title: 'Principais Lideranças por Setor',
+                    subtitle:
+                        'Localidades, Principais Lideranças Identificadas e Ponto Focal de casa um dos SM',
+                    imagePath: 'assets/ico_plideres.png',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        PageRouteBuilder(
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  AtribuirLiderancasScreen(),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            final fadeAnimation = CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeInOut,
+                            );
+                            return FadeTransition(
+                              opacity: fadeAnimation,
+                              child: child,
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  )
+                else
+                  buildDisabledAnimatedCard(
+                    context,
+                    title: 'Principais Lideranças por Setor',
+                    subtitle:
+                        'Localidades, Principais Lideranças Identificadas e Ponto Focal de casa um dos SM',
+                    imagePath: 'assets/ico_plideres.png',
                   ),
               ],
             ),

@@ -95,6 +95,8 @@ class _OrganizacaoMunicipioScreenState
         backgroundColor: Colors.green,
       ),
     );
+
+    Navigator.of(context).pop();
   }
 
   Widget _buildTextField(TextEditingController controller, String label) {

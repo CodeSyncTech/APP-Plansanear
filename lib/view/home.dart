@@ -1,5 +1,8 @@
 import 'package:Redeplansanea/produtos/produto_a/views/formacao_comite_form.dart';
 import 'package:Redeplansanea/view/painelAdmin/ProdutoA/padmin_formacaocomite.dart';
+import 'package:Redeplansanea/view/painelAdmin/ProdutoA/padmin_infomunicipio.dart';
+import 'package:Redeplansanea/view/painelAdmin/ProdutoA/padmin_organizacaosocial.dart';
+import 'package:Redeplansanea/view/painelAdmin/ProdutoA/padmin_setores.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -844,9 +847,46 @@ class _UserListItem extends StatelessWidget {
                       title: const Text('Informações sobre o Município'),
                       onTap: () {
                         Navigator.pop(context);
-                        // Adicione aqui a navegação para a tela correspondente
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                InformacoesMunicipioScreen(userId: docId),
+                          ),
+                        );
                       },
                     ),
+                    ListTile(
+                      leading:
+                          Icon(Icons.social_distance, color: Colors.blue[800]),
+                      title: const Text('Organização Social'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                VisualizacaoOrganizacaoMunicipioScreen(
+                                    userId: docId),
+                          ),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading:
+                          Icon(Icons.folder_special, color: Colors.blue[800]),
+                      title: const Text('Setores'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ListaSetoresScreen(userId: docId),
+                          ),
+                        );
+                      },
+                    )
                   ],
                 ),
                 // Produto B com opções agrupadas

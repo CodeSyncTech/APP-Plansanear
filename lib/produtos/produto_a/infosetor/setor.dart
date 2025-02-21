@@ -2,13 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-void main() {
-  runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: SetoresScreen(),
-  ));
-}
-
 class SetoresScreen extends StatefulWidget {
   @override
   _SetoresScreenState createState() => _SetoresScreenState();
@@ -232,15 +225,6 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
           ),
           validator: (value) => value == null ? 'Selecione uma opção' : null,
         ),
-        if (value == "Outro")
-          TextFormField(
-            controller: _getControllerForOtherField(question),
-            decoration: const InputDecoration(
-              labelText: "Especifique:",
-              border: OutlineInputBorder(),
-            ),
-            validator: (value) => value!.isEmpty ? "Campo obrigatório" : null,
-          ),
       ],
     );
   }
@@ -630,24 +614,28 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
                         ["Sim", "Não"],
                         (value) => setState(() => _tratamentoEsgoto = value),
                       ),
-                      _buildDropdown(
-                        "16. Responsável pelo tratamento:",
-                        _responsavelEsgoto,
-                        ["Morador", "Prefeitura", "Outro"],
-                        (value) => setState(() => _responsavelEsgoto = value),
-                      ),
-                      if (_responsavelEsgoto == "Outro")
-                        TextFormField(
-                          controller: _outroResponsavelEsgotoController,
-                          decoration: const InputDecoration(
-                            labelText: "Especificar responsável:",
-                            border: OutlineInputBorder(),
-                          ),
-                          validator: (value) =>
-                              (_responsavelEsgoto == "Outro" && value!.isEmpty)
-                                  ? "Campo obrigatório"
-                                  : null,
+                      if (_tratamentoEsgoto == "Sim") ...[
+                        _buildDropdown(
+                          "16. Responsável pelo tratamento:",
+                          _responsavelEsgoto,
+                          ["Morador", "Prefeitura", "Outro"],
+                          (value) => setState(() => _responsavelEsgoto = value),
                         ),
+                        SizedBox(height: 10),
+                        if (_responsavelEsgoto == "Outro")
+                          TextFormField(
+                            controller: _outroResponsavelEsgotoController,
+                            decoration: const InputDecoration(
+                              labelText: "Especificar responsável:",
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) =>
+                                (_responsavelEsgoto == "Outro" &&
+                                        value!.isEmpty)
+                                    ? "Campo obrigatório"
+                                    : null,
+                          ),
+                      ],
                     ],
                     _buildSectionTitle("Gestão de Resíduos"),
                     _buildDropdown(

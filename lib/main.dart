@@ -1,6 +1,7 @@
 import 'package:Redeplansanea/formularios/presenca/forms_page.dart';
 import 'package:Redeplansanea/produtos/produto_a/produto_a.dart';
 import 'package:Redeplansanea/produtos/produto_a/views/formacao_comite_form.dart';
+import 'package:Redeplansanea/produtos/produto_b/info_caracterizacao/caracteriza%C3%A7%C3%A3o_municipio.dart';
 import 'package:Redeplansanea/router.dart';
 import 'package:Redeplansanea/view/home.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -52,6 +53,7 @@ class BottomNavBar extends StatefulWidget {
 
 class _BottomNavBarState extends State<BottomNavBar> {
   User? get _currentUser => FirebaseAuth.instance.currentUser;
+
   int _page = 1;
   late List<Widget> _pages;
   final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
@@ -187,8 +189,36 @@ class _BottomNavBarState extends State<BottomNavBar> {
   }
 }
 
-class Produtos extends StatelessWidget {
+class Produtos extends StatefulWidget {
   const Produtos({super.key});
+
+  @override
+  State<Produtos> createState() => _ProdutosState();
+}
+
+class _ProdutosState extends State<Produtos> {
+  User? get _currentUser => FirebaseAuth.instance.currentUser;
+
+  // userData será carregado assincronamente
+  Map<String, dynamic>? userData;
+
+  @override
+  void initState() {
+    super.initState();
+    // Carrega os dados do usuário
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_currentUser?.uid)
+        .get();
+
+    setState(() {
+      userData = doc.data() as Map<String, dynamic>?;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -208,13 +238,30 @@ class Produtos extends StatelessWidget {
               );
             },
           ),
-          // Produto B: Vai para a tela Esgoto
-          buildDisabledAnimatedCard(
-            context,
-            title: 'Produto B',
-            subtitle: 'Estratégia de Mobilização, Participação e Comunicação',
-            imagePath: 'assets/capaProdutos/produtoB.png',
-          ),
+
+          if ((userData?['nivelConta'] ?? 2) > 2 ||
+              (userData?['nivelConta'] ?? 2) == 1)
+            buildAnimatedCard(
+              context,
+              title: 'Produto B',
+              subtitle: 'Estratégia de Mobilização, Participação e Comunicação',
+              imagePath: 'assets/capaProdutos/produtoB.png',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => CaracterizacaoMunicipioScreen()),
+                );
+              },
+            )
+          else
+            buildDisabledAnimatedCard(
+              context,
+              title: 'Produto B',
+              subtitle: 'Estratégia de Mobilização, Participação e Comunicação',
+              imagePath: 'assets/capaProdutos/produtoB.png',
+            ),
+
           // Produto C: Apenas como exemplo, sem navegação específica
           buildDisabledAnimatedCard(
             context,
