@@ -1,3 +1,4 @@
+import 'package:Redeplansanea/downloads/download_lista_presenca.dart';
 import 'package:Redeplansanea/formularios/presenca/lista_presenca.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -220,6 +221,11 @@ class _AdminScreenState extends State<AdminScreen> {
                                 context, filteredFormularios[index].id),
                             onDelete: () => _confirmarExclusao(
                                 context, filteredFormularios[index].id),
+                            onDownloadPdf: () => _baixarPdf(
+                                context,
+                                form,
+                                "Respostas: ${quantidade.toString()}",
+                                filteredFormularios[index].id),
                             onTap: () {
                               Navigator.of(context).push(
                                 PageRouteBuilder(
@@ -307,6 +313,7 @@ class _FormularioCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onCopy;
   final VoidCallback onDelete;
+  final VoidCallback onDownloadPdf; // Adicione este parâmetro
 
   const _FormularioCard({
     required this.cidade,
@@ -315,6 +322,7 @@ class _FormularioCard extends StatelessWidget {
     required this.onTap,
     required this.onCopy,
     required this.onDelete,
+    required this.onDownloadPdf, // Inclua no construtor
   });
 
   @override
@@ -369,6 +377,13 @@ class _FormularioCard extends StatelessWidget {
                         onPressed: onCopy,
                         tooltip: 'Copiar link do formulário',
                       ),
+                      IconButton(
+                        icon: const Icon(Icons.picture_as_pdf,
+                            color: Colors.green),
+                        onPressed:
+                            onDownloadPdf, // Chama a função que gera o PDF
+                        tooltip: 'Download PDF',
+                      ),
                       const Icon(Icons.chevron_right, color: Colors.blue),
                     ],
                   ),
@@ -395,6 +410,16 @@ class _FormularioCard extends StatelessWidget {
       ),
     );
   }
+}
+
+void _baixarPdf(BuildContext context, Map<String, dynamic> form,
+    String quantidadeText, String formId) async {
+  String cidade =
+      '${form['municipio'] ?? "Sem Localização"} - ${form['estado'] ?? "Sem Localização"}';
+  String dataCriacao = form['dataCriacao'] ?? "Data desconhecida";
+
+  // Chama a função do arquivo pdf_generator.dart que gera o PDF com todas as respostas
+  await handleGeneratePdfWithRespostas(context, formId, cidade, dataCriacao);
 }
 
 // Mantenha as outras classes (RespostasScreen, _RespostaCard, _InfoRow, EmptyStateWidget)
