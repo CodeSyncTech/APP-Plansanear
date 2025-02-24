@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AtribuirLiderancasScreen extends StatefulWidget {
   @override
@@ -12,18 +13,14 @@ class _AtribuirLiderancasScreenState extends State<AtribuirLiderancasScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String? uid = FirebaseAuth.instance.currentUser?.uid;
 
-  // ID do setor selecionado e lista de lideranças principais
   String? _selectedSetor;
   List<Map<String, String>> _liderancas = [];
-
-  // Controllers para os campos de preenchimento
   final TextEditingController _localidadeController = TextEditingController();
   final TextEditingController _liderancaController = TextEditingController();
   final TextEditingController _tipoOrganizacaoController =
       TextEditingController();
   final TextEditingController _contatoController = TextEditingController();
 
-  // Carrega as lideranças já cadastradas para o setor selecionado
   void _loadLiderancas(String setorId) async {
     DocumentSnapshot doc = await _firestore
         .collection('formInfoMunicipio')
@@ -32,7 +29,6 @@ class _AtribuirLiderancasScreenState extends State<AtribuirLiderancasScreen> {
         .doc(setorId)
         .get();
     if (doc.exists) {
-      // Converte os dados do documento para Map<String, dynamic>
       Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
       if (data != null && data.containsKey('liderancas_principais')) {
         List<dynamic>? liderancasData = data['liderancas_principais'];
@@ -51,7 +47,6 @@ class _AtribuirLiderancasScreenState extends State<AtribuirLiderancasScreen> {
     }
   }
 
-  // Adiciona uma nova liderança à lista, validando se todos os campos foram preenchidos
   void _addLideranca() {
     String localidade = _localidadeController.text.trim();
     String lideranca = _liderancaController.text.trim();
@@ -63,7 +58,10 @@ class _AtribuirLiderancasScreenState extends State<AtribuirLiderancasScreen> {
         tipoOrganizacao.isEmpty ||
         contato.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Por favor, preencha todos os campos.")),
+        SnackBar(
+          content: Text("Por favor, preencha todos os campos."),
+          backgroundColor: Colors.red[400],
+        ),
       );
       return;
     }
@@ -75,32 +73,31 @@ class _AtribuirLiderancasScreenState extends State<AtribuirLiderancasScreen> {
       "contato": contato,
     };
 
-    // Evita duplicidade
     if (!_liderancas.contains(novaLideranca)) {
       setState(() {
         _liderancas.add(novaLideranca);
       });
     }
 
-    // Limpa os campos após a adição
     _localidadeController.clear();
     _liderancaController.clear();
     _tipoOrganizacaoController.clear();
     _contatoController.clear();
   }
 
-  // Remove uma liderança da lista
   void _removeLideranca(int index) {
     setState(() {
       _liderancas.removeAt(index);
     });
   }
 
-  // Exibe um diálogo para que o usuário escolha o ponto focal dentre as localidades cadastradas
   Future<void> _choosePontoFocal() async {
     if (_liderancas.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Adicione pelo menos uma liderança.")),
+        SnackBar(
+          content: Text("Adicione pelo menos uma liderança."),
+          backgroundColor: Colors.red[400],
+        ),
       );
       return;
     }
@@ -112,46 +109,91 @@ class _AtribuirLiderancasScreenState extends State<AtribuirLiderancasScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
-            return AlertDialog(
-              title: Text("Escolha o Ponto Focal"),
-              content: Container(
-                width: double.maxFinite,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _liderancas.length,
-                  itemBuilder: (context, index) {
-                    var lider = _liderancas[index];
-                    return RadioListTile<String>(
-                      title: Text(lider['localidade'] ?? ""),
-                      value: lider['localidade'] ?? "",
-                      groupValue: pontoFocalSelecionado,
-                      onChanged: (value) {
-                        setStateDialog(() {
-                          pontoFocalSelecionado = value;
-                        });
-                      },
-                    );
-                  },
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.blue.shade50, Colors.white],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text("Escolha o Ponto Focal",
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue[900])),
+                    SizedBox(height: 15),
+                    Container(
+                      height: 200,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _liderancas.length,
+                        itemBuilder: (context, index) {
+                          var lider = _liderancas[index];
+                          return Card(
+                            elevation: 2,
+                            margin: EdgeInsets.symmetric(vertical: 4),
+                            child: RadioListTile<String>(
+                              title: Text(lider['localidade'] ?? "",
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.w500)),
+                              value: lider['localidade'] ?? "",
+                              groupValue: pontoFocalSelecionado,
+                              activeColor: Colors.blue[800],
+                              onChanged: (value) {
+                                setStateDialog(() {
+                                  pontoFocalSelecionado = value;
+                                });
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 15),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text("Cancelar",
+                              style: TextStyle(color: Colors.blue[800])),
+                        ),
+                        SizedBox(width: 10),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[800],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: () {
+                            if (pontoFocalSelecionado == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("Selecione um ponto focal."),
+                                  backgroundColor: Colors.red[400],
+                                ),
+                              );
+                              return;
+                            }
+                            Navigator.pop(context);
+                          },
+                          child: Text("Confirmar",
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text("Cancelar"),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (pontoFocalSelecionado == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Selecione um ponto focal.")),
-                      );
-                      return;
-                    }
-                    Navigator.pop(context);
-                  },
-                  child: Text("Confirmar"),
-                ),
-              ],
             );
           },
         );
@@ -163,11 +205,13 @@ class _AtribuirLiderancasScreenState extends State<AtribuirLiderancasScreen> {
     }
   }
 
-  // Salva as lideranças e o ponto focal no Firestore
   void _saveLiderancas(String pontoFocal) async {
     if (_selectedSetor == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Selecione um setor.")),
+        SnackBar(
+          content: Text("Selecione um setor."),
+          backgroundColor: Colors.red[400],
+        ),
       );
       return;
     }
@@ -185,7 +229,7 @@ class _AtribuirLiderancasScreenState extends State<AtribuirLiderancasScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("Lideranças atribuídas com sucesso!"),
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.green[600],
       ),
     );
     Navigator.pop(context);
@@ -194,136 +238,313 @@ class _AtribuirLiderancasScreenState extends State<AtribuirLiderancasScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Atribuir Lideranças Principais"),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: uid == null
-            ? Center(child: Text("Usuário não autenticado"))
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: Colors.transparent,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100.0),
+        child: AppBar(
+          elevation: 2,
+          shadowColor: Colors.blue.shade100,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Row(
                 children: [
-                  // Seleção do setor
-                  Text("Selecione um setor:",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 8),
-                  StreamBuilder<QuerySnapshot>(
-                    stream: _firestore
-                        .collection('formInfoMunicipio')
-                        .doc(uid)
-                        .collection('setores')
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      }
-                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                        return Text("Nenhum setor cadastrado.");
-                      }
-                      final setores = snapshot.data!.docs;
-                      return DropdownButtonFormField<String>(
-                        value: _selectedSetor,
-                        items: setores.map((doc) {
-                          return DropdownMenuItem<String>(
-                            value: doc.id,
-                            child: Text(doc['nome']),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedSetor = value;
-                            _liderancas = [];
-                          });
-                          _loadLiderancas(value!);
-                        },
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          contentPadding:
-                              EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  // Conteúdo centralizado
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Logo
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Image.asset(
+                                'assets/logoredeplanrmbg.png',
+                                height: 50,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ],
                         ),
-                        hint: Text("Selecione um setor"),
-                      );
-                    },
-                  ),
-                  SizedBox(height: 20),
-                  // Campos para cadastro das lideranças
-                  Text("Preencha as informações da liderança:",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 8),
-                  TextField(
-                    controller: _localidadeController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: "Localidade",
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  TextField(
-                    controller: _liderancaController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: "Liderança",
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  TextField(
-                    controller: _tipoOrganizacaoController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: "Tipo de Organização",
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  TextField(
-                    controller: _contatoController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: "Contato",
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: _addLideranca,
-                    child: Text("Adicionar Liderança"),
-                  ),
-                  SizedBox(height: 20),
-                  // Exibição das lideranças adicionadas
-                  Text("Lideranças adicionadas:",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 8),
-                  _liderancas.isEmpty
-                      ? Text("Nenhuma liderança adicionada.")
-                      : Expanded(
-                          child: ListView.builder(
-                            itemCount: _liderancas.length,
-                            itemBuilder: (context, index) {
-                              var lider = _liderancas[index];
-                              return ListTile(
-                                title: Text(
-                                    "${lider['localidade']} - ${lider['lideranca']}"),
-                                subtitle: Text(
-                                    "Tipo: ${lider['tipo_organizacao']} | Contato: ${lider['contato']}"),
-                                trailing: IconButton(
-                                  icon: Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _removeLideranca(index),
-                                ),
-                              );
-                            },
-                          ),
+                        const SizedBox(width: 20),
+                        // Título
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Atribuição de',
+                              style: GoogleFonts.roboto(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            Text(
+                              'Lideranças Principais',
+                              style: GoogleFonts.roboto(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.blue.shade800,
+                              ),
+                            ),
+                          ],
                         ),
-                  SizedBox(height: 20),
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: _choosePontoFocal,
-                      child: Text("Salvar Atribuição"),
+                      ],
                     ),
                   ),
+
+                  // Botão de adicionar estilizado
                 ],
               ),
+            ),
+          ),
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.blue.shade50, Colors.white],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: uid == null
+              ? Center(child: Text("Usuário não autenticado"))
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Selecione um setor:",
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue[900])),
+                    SizedBox(height: 8),
+                    StreamBuilder<QuerySnapshot>(
+                      stream: _firestore
+                          .collection('formInfoMunicipio')
+                          .doc(uid)
+                          .collection('setores')
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        }
+                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                          return Text("Nenhum setor cadastrado.",
+                              style: TextStyle(color: Colors.blueGrey));
+                        }
+                        final setores = snapshot.data!.docs;
+                        return Container(
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 4,
+                                  offset: Offset(0, 2),
+                                ),
+                              ]),
+                          child: DropdownButtonFormField<String>(
+                            value: _selectedSetor,
+                            items: setores.map((doc) {
+                              return DropdownMenuItem<String>(
+                                value: doc.id,
+                                child: Text(doc['nome'],
+                                    style: TextStyle(color: Colors.blue[900])),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedSetor = value;
+                                _liderancas = [];
+                              });
+                              _loadLiderancas(value!);
+                            },
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 15, vertical: 12),
+                              filled: true,
+                              fillColor: Colors.transparent,
+                            ),
+                            style: TextStyle(color: Colors.blue[900]),
+                            dropdownColor: Colors.white,
+                            icon: Icon(Icons.arrow_drop_down,
+                                color: Colors.blue[900]),
+                            hint: Text("Selecione um setor",
+                                style: TextStyle(color: Colors.blueGrey)),
+                          ),
+                        );
+                      },
+                    ),
+                    SizedBox(height: 25),
+                    Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(15),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Informações da Liderança:",
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue[900])),
+                            SizedBox(height: 12),
+                            _buildTextField(
+                                controller: _localidadeController,
+                                hint: "Localidade",
+                                icon: Icons.location_on),
+                            SizedBox(height: 10),
+                            _buildTextField(
+                                controller: _liderancaController,
+                                hint: "Liderança",
+                                icon: Icons.person),
+                            SizedBox(height: 10),
+                            _buildTextField(
+                                controller: _tipoOrganizacaoController,
+                                hint: "Tipo de Organização",
+                                icon: Icons.group),
+                            SizedBox(height: 10),
+                            _buildTextField(
+                                controller: _contatoController,
+                                hint: "Contato",
+                                icon: Icons.phone),
+                            SizedBox(height: 15),
+                            Center(
+                              child: ElevatedButton.icon(
+                                icon: Icon(Icons.add, size: 20),
+                                label: Text("Adicionar Liderança"),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue[800],
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 25, vertical: 12),
+                                ),
+                                onPressed: _addLideranca,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 25),
+                    Text("Lideranças Adicionadas:",
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue[900])),
+                    SizedBox(height: 8),
+                    _liderancas.isEmpty
+                        ? Padding(
+                            padding: EdgeInsets.only(top: 10),
+                            child: Text("Nenhuma liderança adicionada.",
+                                style: TextStyle(color: Colors.blueGrey)),
+                          )
+                        : Expanded(
+                            child: ListView.builder(
+                              itemCount: _liderancas.length,
+                              itemBuilder: (context, index) {
+                                var lider = _liderancas[index];
+                                return Card(
+                                  elevation: 2,
+                                  margin: EdgeInsets.symmetric(vertical: 5),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: ListTile(
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 15, vertical: 8),
+                                    title: Text(
+                                      "${lider['localidade']} - ${lider['lideranca']}",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.blue[900]),
+                                    ),
+                                    subtitle: Text(
+                                      "Tipo: ${lider['tipo_organizacao']} | Contato: ${lider['contato']}",
+                                      style: TextStyle(color: Colors.blueGrey),
+                                    ),
+                                    trailing: IconButton(
+                                      icon: Icon(Icons.delete,
+                                          color: Colors.red[600]),
+                                      onPressed: () => _removeLideranca(index),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                    SizedBox(height: 15),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: _choosePontoFocal,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green[600],
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 35, vertical: 15),
+                          elevation: 3,
+                        ),
+                        child: Text("Salvar Atribuição",
+                            style: TextStyle(fontSize: 16)),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+  }) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
+        prefixIcon: Icon(icon, color: Colors.blue[900]),
+        hintText: hint,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.blue.shade100),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.blue.shade300),
+        ),
+        contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 15),
       ),
     );
   }

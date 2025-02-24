@@ -378,8 +378,7 @@ class _FormularioCard extends StatelessWidget {
                         tooltip: 'Copiar link do formulário',
                       ),
                       IconButton(
-                        icon: const Icon(Icons.picture_as_pdf,
-                            color: Colors.green),
+                        icon: const Icon(Icons.download, color: Colors.green),
                         onPressed:
                             onDownloadPdf, // Chama a função que gera o PDF
                         tooltip: 'Download PDF',

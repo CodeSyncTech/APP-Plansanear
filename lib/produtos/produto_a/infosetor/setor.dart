@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SetoresScreen extends StatefulWidget {
   @override
@@ -47,65 +48,252 @@ class _SetoresScreenState extends State<SetoresScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Setores")),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _nomeController,
-                    decoration:
-                        const InputDecoration(labelText: "Nome do Setor"),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100.0),
+        child: AppBar(
+          elevation: 2,
+          shadowColor: Colors.blue.shade100,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Row(
+                children: [
+                  // Conteúdo centralizado
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Logo
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Image.asset(
+                                'assets/logoredeplanrmbg.png',
+                                height: 50,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 20),
+                        // Título
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Gerenciamento de',
+                              style: GoogleFonts.roboto(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            Text(
+                              'Setores',
+                              style: GoogleFonts.roboto(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.blue.shade800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                IconButton(icon: const Icon(Icons.add), onPressed: _addSetor),
-              ],
+
+                  // Botão de adicionar estilizado
+                ],
+              ),
             ),
           ),
-          Expanded(
-            child: uid == null
-                ? const Center(child: Text("Usuário não autenticado"))
-                : StreamBuilder<QuerySnapshot>(
-                    stream: _firestore
-                        .collection('formInfoMunicipio')
-                        .doc(uid)
-                        .collection('setores')
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                        return const Center(
-                            child: Text("Nenhum setor cadastrado"));
-                      }
-
-                      final setores = snapshot.data!.docs;
-                      return ListView.builder(
-                        itemCount: setores.length,
-                        itemBuilder: (context, index) {
-                          var setor = setores[index];
-                          return ListTile(
-                            title: Text(setor['nome']),
-                            subtitle: const Text("Clique para preencher"),
-                            onTap: () => _navigateToForm(context, setor.id),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _deleteSetor(setor.id),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.blue.shade50, Colors.white],
           ),
-        ],
+        ),
+        child: Column(
+          children: [
+            _buildInputSection(),
+            _buildSetoresList(),
+          ],
+        ),
       ),
     );
   }
+
+  Widget _buildInputSection() {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: const Color.fromARGB(255, 243, 135, 33).withOpacity(0.1),
+              blurRadius: 10,
+              spreadRadius: 3,
+            )
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _nomeController,
+                  decoration: InputDecoration(
+                    labelText: "Insira o nome do novo Setor",
+                    labelStyle: TextStyle(color: Colors.blue.shade800),
+                    border: InputBorder.none,
+                    hintText: "Digite o nome do setor...",
+                    hintStyle: TextStyle(color: Colors.grey.shade400),
+                  ),
+                  style: TextStyle(color: Colors.blue.shade900),
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [Colors.blue.shade600, Colors.blue.shade400],
+                  ),
+                ),
+                child: IconButton(
+                  icon: Icon(Icons.add, color: Colors.white),
+                  onPressed: _addSetor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSetoresList() {
+    return Expanded(
+      child: uid == null
+          ? _buildErrorWidget("Usuário não autenticado")
+          : StreamBuilder<QuerySnapshot>(
+              stream: _firestore
+                  .collection('formInfoMunicipio')
+                  .doc(uid)
+                  .collection('setores')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return _buildLoading();
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                final setores = snapshot.data!.docs;
+                return ListView.builder(
+                  padding: EdgeInsets.only(bottom: 20),
+                  itemCount: setores.length,
+                  itemBuilder: (context, index) {
+                    var setor = setores[index];
+                    return _buildSetorCard(setor);
+                  },
+                );
+              },
+            ),
+    );
+  }
+
+  Widget _buildSetorCard(QueryDocumentSnapshot setor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: ListTile(
+          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          leading: Container(
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.people_alt_outlined, color: Colors.blue.shade800),
+          ),
+          title: Text(setor['nome'],
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blue.shade900)),
+          subtitle: Text("Toque para editar",
+              style: TextStyle(color: Colors.grey.shade600)),
+          trailing: IconButton(
+            icon: Icon(Icons.delete_outline, color: Colors.red.shade400),
+            onPressed: () => _deleteSetor(setor.id),
+          ),
+          onTap: () => _navigateToForm(context, setor.id),
+          tileColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoading() => Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade800),
+        ),
+      );
+
+  Widget _buildEmptyState() => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.inbox_outlined, size: 80, color: Colors.blue.shade200),
+            SizedBox(height: 20),
+            Text("Nenhum setor cadastrado",
+                style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.blue.shade400,
+                    fontWeight: FontWeight.w500)),
+          ],
+        ),
+      );
+
+  Widget _buildErrorWidget(String message) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 60, color: Colors.red.shade400),
+            SizedBox(height: 20),
+            Text(message,
+                style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.red.shade600,
+                    fontWeight: FontWeight.w500)),
+          ],
+        ),
+      );
 }
 
 class SetorFormScreen extends StatefulWidget {
@@ -121,17 +309,24 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
   final String? uid = FirebaseAuth.instance.currentUser?.uid;
   final _formKey = GlobalKey<FormState>();
 
+  List<String> bairrosList = [];
+  List<String> localidadesRuraisList = [];
+
   // Controladores
   late TextEditingController _localController;
   late TextEditingController _capacidadeController;
   late TextEditingController _distanciaController;
-  late TextEditingController _bairrosController;
-  late TextEditingController _localidadesRuraisController;
+
+  final TextEditingController _bairroInputController = TextEditingController();
+  final TextEditingController _localidadeInputController =
+      TextEditingController();
+
   late TextEditingController _outraFonteUrbanaController;
   late TextEditingController _outraFonteRuralController;
   late TextEditingController _outroResponsavelUrbanoController;
   late TextEditingController _outroResponsavelRuralController;
   late TextEditingController _outroResponsavelEsgotoController;
+  late TextEditingController _outroResponsavelEsgotoRuralController;
   late TextEditingController _responsavelResiduosUrbanoController;
   late TextEditingController _responsavelResiduosRuralController;
   late TextEditingController _justificativaUrbanaController;
@@ -150,6 +345,10 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
   String? _tratamentoEsgoto;
   String? _responsavelEsgoto;
   String? _coletaResiduosUrbana;
+
+  String? _coletaEsgotoRural;
+  String? _tratamentoEsgotoRural;
+  String? _responsavelEsgotoRural;
   String? _coletaResiduosRural;
   bool _isLoading = true;
 
@@ -164,8 +363,7 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
     _localController = TextEditingController();
     _capacidadeController = TextEditingController();
     _distanciaController = TextEditingController();
-    _bairrosController = TextEditingController();
-    _localidadesRuraisController = TextEditingController();
+
     _outraFonteUrbanaController = TextEditingController();
     _outraFonteRuralController = TextEditingController();
     _outroResponsavelUrbanoController = TextEditingController();
@@ -175,18 +373,26 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
     _responsavelResiduosRuralController = TextEditingController();
     _justificativaUrbanaController = TextEditingController();
     _justificativaRuralController = TextEditingController();
+
+    _outroResponsavelEsgotoRuralController = TextEditingController();
   }
 
-  Widget _buildSectionTitle(String title) {
+  _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(top: 20, bottom: 10),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Colors.blue,
-        ),
+      child: Row(
+        children: [
+          Icon(Icons.arrow_forward_ios, size: 16, color: Colors.blue.shade800),
+          SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue.shade800,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -211,6 +417,8 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
       children: [
         _buildQuestion(question),
         DropdownButtonFormField<String>(
+          dropdownColor: Colors.white,
+          style: TextStyle(color: Colors.blue.shade900),
           value: value,
           items: options.map((String value) {
             return DropdownMenuItem<String>(
@@ -219,8 +427,13 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
             );
           }).toList(),
           onChanged: onChanged,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Colors.blue.shade200),
+            ),
+            filled: true,
+            fillColor: Colors.white,
             isDense: true,
           ),
           validator: (value) => value == null ? 'Selecione uma opção' : null,
@@ -230,14 +443,15 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
   }
 
   TextEditingController _getControllerForOtherField(String question) {
-    if (question.contains("responsável")) {
-      if (question.contains("urbano")) return _outroResponsavelUrbanoController;
-      if (question.contains("rural")) return _outroResponsavelRuralController;
-      if (question.contains("esgoto")) return _outroResponsavelEsgotoController;
+    String q = question.toLowerCase();
+    if (q.contains("responsável")) {
+      if (q.contains("urbano")) return _outroResponsavelUrbanoController;
+      if (q.contains("rural")) return _outroResponsavelRuralController;
+      if (q.contains("esgoto")) return _outroResponsavelEsgotoController;
     }
-    if (question.contains("fonte")) {
-      if (question.contains("urbana")) return _outraFonteUrbanaController;
-      if (question.contains("rural")) return _outraFonteRuralController;
+    if (q.contains("fonte")) {
+      if (q.contains("urbana")) return _outraFonteUrbanaController;
+      if (q.contains("rural")) return _outraFonteRuralController;
     }
     return TextEditingController();
   }
@@ -256,6 +470,8 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
         Column(
           children: options.map((option) {
             return CheckboxListTile(
+              activeColor: Colors.blue.shade800,
+              checkColor: Colors.white,
               title: Text(option),
               value: selected.contains(option),
               onChanged: (bool? value) {
@@ -269,9 +485,14 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
         if (selected.contains("Outro"))
           TextFormField(
             controller: _getControllerForOtherField(question),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: "Especifique:",
-              border: OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.blue.shade200),
+              ),
+              filled: true,
+              fillColor: Colors.white,
             ),
             validator: (value) => selected.contains("Outro") && value!.isEmpty
                 ? "Campo obrigatório"
@@ -280,9 +501,14 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
         if (selected.length > 1)
           TextFormField(
             controller: justificationController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: "Justifique a seleção múltipla:",
-              border: OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.blue.shade200),
+              ),
+              filled: true,
+              fillColor: Colors.white,
             ),
             validator: (value) => selected.length > 1 && value!.isEmpty
                 ? "Justificativa obrigatória"
@@ -318,9 +544,14 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
         if (selected.contains("Outro"))
           TextFormField(
             controller: _getControllerForOtherField(question),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: "Especifique:",
-              border: OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.blue.shade200),
+              ),
+              filled: true,
+              fillColor: Colors.white,
             ),
             validator: (value) => selected.contains("Outro") && value!.isEmpty
                 ? "Campo obrigatório"
@@ -360,10 +591,18 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
           _coletaEsgotoUrbana = data['coleta_esgoto_urbana'];
           _tratamentoEsgoto = data['tratamento_esgoto'];
           _responsavelEsgoto = data['responsavel_esgoto'];
+
+          _coletaEsgotoRural = data['coleta_esgoto_rural'];
+          _tratamentoEsgotoRural = data['tratamento_esgoto_rural'];
+          _responsavelEsgotoRural = data['responsavel_esgoto_rural'];
+          _outroResponsavelEsgotoRuralController.text =
+              data['outro_responsavel_esgoto_rural'] ?? '';
+
           _coletaResiduosUrbana = data['coleta_residuos_urbana'];
           _coletaResiduosRural = data['coleta_residuos_rural'];
-          _bairrosController.text = data['bairros'] ?? '';
-          _localidadesRuraisController.text = data['localidades_rurais'] ?? '';
+          bairrosList = List<String>.from(data['bairros'] ?? []);
+          localidadesRuraisList =
+              List<String>.from(data['localidades_rurais'] ?? []);
           _outraFonteUrbanaController.text = data['outra_fonte_urbana'] ?? '';
           _outraFonteRuralController.text = data['outra_fonte_rural'] ?? '';
           _outroResponsavelUrbanoController.text =
@@ -403,10 +642,15 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
         'coleta_esgoto_urbana': _coletaEsgotoUrbana,
         'tratamento_esgoto': _tratamentoEsgoto,
         'responsavel_esgoto': _responsavelEsgoto,
+        'coleta_esgoto_rural': _coletaEsgotoRural,
+        'tratamento_esgoto_rural': _tratamentoEsgotoRural,
+        'responsavel_esgoto_rural': _responsavelEsgotoRural,
+        'outro_responsavel_esgoto_rural':
+            _outroResponsavelEsgotoRuralController.text,
         'coleta_residuos_urbana': _coletaResiduosUrbana,
         'coleta_residuos_rural': _coletaResiduosRural,
-        'bairros': _bairrosController.text,
-        'localidades_rurais': _localidadesRuraisController.text,
+        'bairros': bairrosList,
+        'localidades_rurais': localidadesRuraisList,
         'outra_fonte_urbana': _outraFonteUrbanaController.text,
         'outra_fonte_rural': _outraFonteRuralController.text,
         'outro_responsavel_urbano': _outroResponsavelUrbanoController.text,
@@ -433,270 +677,443 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Questionário Completo"),
-        elevation: 4,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100.0),
+        child: AppBar(
+          elevation: 2,
+          shadowColor: Colors.blue.shade100,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Row(
+                children: [
+                  // Conteúdo centralizado
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Logo
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Image.asset(
+                                'assets/logoredeplanrmbg.png',
+                                height: 50,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 20),
+                        // Título
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Questionário',
+                              style: GoogleFonts.roboto(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            Text(
+                              'Completo',
+                              style: GoogleFonts.roboto(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.blue.shade800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Botão de adicionar estilizado
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSectionTitle("Informações Básicas"),
-                    _buildQuestion(
-                        "1. Indique um local para realização de eventos:"),
-                    TextFormField(
-                      controller: _localController,
-                      decoration: const InputDecoration(
-                        hintText: "Ex: Escola Municipal, Centro Comunitário...",
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) =>
-                          value!.isEmpty ? "Campo obrigatório" : null,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildQuestion("2. Capacidade máxima do local:"),
-                    TextFormField(
-                      controller: _capacidadeController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        suffixText: "pessoas",
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) =>
-                          value!.isEmpty ? "Campo obrigatório" : null,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildQuestion("3. Distância até a Sede do Município:"),
-                    TextFormField(
-                      controller: _distanciaController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        suffixText: "quilômetros",
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) =>
-                          value!.isEmpty ? "Campo obrigatório" : null,
-                    ),
-                    _buildSectionTitle("Infraestrutura"),
-                    _buildDropdown(
-                      "4. O local possui energia elétrica?",
-                      _energiaEletrica,
-                      ["Sim", "Não"],
-                      (value) => setState(() => _energiaEletrica = value),
-                    ),
-                    _buildDropdown(
-                      "5. O local possui banheiros?",
-                      _banheiros,
-                      ["Sim", "Não"],
-                      (value) => setState(() => _banheiros = value),
-                    ),
-                    _buildDropdown(
-                      "6. O local possui água potável?",
-                      _aguaPotavel,
-                      ["Sim", "Não"],
-                      (value) => setState(() => _aguaPotavel = value),
-                    ),
-                    _buildSectionTitle("Características do Setor"),
-                    _buildDropdown(
-                      "7. Área predominante:",
-                      _areaSetor,
-                      ["Área urbana", "Área rural", "Área urbana e rural"],
-                      (value) => setState(() => _areaSetor = value),
-                    ),
-                    if (_areaSetor != null && _areaSetor!.contains("urbana"))
-                      Column(
-                        children: [
-                          _buildQuestion("8. Bairros existentes:"),
-                          TextFormField(
-                            controller: _bairrosController,
-                            decoration: const InputDecoration(
-                              hintText: "Separar por vírgula",
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) => (value!.isEmpty &&
-                                    _areaSetor!.contains("urbana"))
-                                ? "Campo obrigatório"
-                                : null,
+          : Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.blue.shade50, Colors.white],
+                ),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionTitle("Informações Básicas"),
+                      _buildQuestion(
+                          "Indique um local para realização de eventos nesse Setor de Mobilização. "),
+                      TextFormField(
+                        controller: _localController,
+                        decoration: InputDecoration(
+                          hintText:
+                              "Ex: Escola, Auditório, Câmara, Teatro, etc.)",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.blue.shade200),
                           ),
-                        ],
-                      ),
-                    if (_areaSetor != null && _areaSetor!.contains("rural"))
-                      Column(
-                        children: [
-                          _buildQuestion("9. Localidades rurais:"),
-                          TextFormField(
-                            controller: _localidadesRuraisController,
-                            decoration: const InputDecoration(
-                              hintText: "Separar por vírgula",
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) => (value!.isEmpty &&
-                                    _areaSetor!.contains("rural"))
-                                ? "Campo obrigatório"
-                                : null,
-                          ),
-                        ],
-                      ),
-                    _buildSectionTitle("Abastecimento de Água"),
-                    _buildMultiSelect(
-                      question: "10. Fontes na área urbana:",
-                      selected: _fontesAbastecimentoUrbana,
-                      options: [
-                        "Rio",
-                        "Riacho",
-                        "Cisterna/Água da Chuva",
-                        "Cisterna/Pipa",
-                        "Poço comunitário",
-                        "Poço próprio",
-                        "Outra"
-                      ],
-                      onChanged: (value) =>
-                          setState(() => _fontesAbastecimentoUrbana = value),
-                    ),
-                    _buildMultiSelect(
-                      question: "11. Fontes na área rural:",
-                      selected: _fontesAbastecimentoRural,
-                      options: [
-                        "Rio",
-                        "Riacho",
-                        "Cisterna/Água da Chuva",
-                        "Cisterna/Pipa",
-                        "Poço comunitário",
-                        "Poço próprio",
-                        "Outra"
-                      ],
-                      onChanged: (value) =>
-                          setState(() => _fontesAbastecimentoRural = value),
-                    ),
-                    _buildSectionTitle("Responsáveis pelo Abastecimento"),
-                    _buildMultiSelectWithJustification(
-                      question: "12. Responsáveis urbanos:",
-                      selected: _responsaveisAguaUrbana,
-                      options: [
-                        "Prefeitura (secretaria)",
-                        "SAAE",
-                        "Exército",
-                        "Outro"
-                      ],
-                      onChanged: (value) =>
-                          setState(() => _responsaveisAguaUrbana = value),
-                      justificationController: _justificativaUrbanaController,
-                    ),
-                    _buildMultiSelectWithJustification(
-                      question: "13. Responsáveis rurais:",
-                      selected: _responsaveisAguaRural,
-                      options: [
-                        "Prefeitura (secretaria)",
-                        "SAAE",
-                        "Exército",
-                        "Outro"
-                      ],
-                      onChanged: (value) =>
-                          setState(() => _responsaveisAguaRural = value),
-                      justificationController: _justificativaRuralController,
-                    ),
-                    _buildSectionTitle("Gestão de Esgoto"),
-                    _buildDropdown(
-                      "14. Coleta de esgoto urbano:",
-                      _coletaEsgotoUrbana,
-                      ["Sim", "Não"],
-                      (value) => setState(() => _coletaEsgotoUrbana = value),
-                    ),
-                    if (_coletaEsgotoUrbana == "Sim") ...[
-                      _buildDropdown(
-                        "15. Tratamento de esgoto:",
-                        _tratamentoEsgoto,
-                        ["Sim", "Não"],
-                        (value) => setState(() => _tratamentoEsgoto = value),
-                      ),
-                      if (_tratamentoEsgoto == "Sim") ...[
-                        _buildDropdown(
-                          "16. Responsável pelo tratamento:",
-                          _responsavelEsgoto,
-                          ["Morador", "Prefeitura", "Outro"],
-                          (value) => setState(() => _responsavelEsgoto = value),
+                          filled: true,
+                          fillColor: Colors.white,
                         ),
-                        SizedBox(height: 10),
-                        if (_responsavelEsgoto == "Outro")
+                        validator: (value) =>
+                            value!.isEmpty ? "Campo obrigatório" : null,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildQuestion(
+                          "O local indicado possui capacidade para comportar quantas pessoas?"),
+                      TextFormField(
+                        controller: _capacidadeController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          suffixText: "pessoas",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.blue.shade200),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        validator: (value) =>
+                            value!.isEmpty ? "Campo obrigatório" : null,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildQuestion(
+                          "Qual a distância do local indicado para a Sede do Município?"),
+                      TextFormField(
+                        controller: _distanciaController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          suffixText: "quilômetros",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.blue.shade200),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        validator: (value) =>
+                            value!.isEmpty ? "Campo obrigatório" : null,
+                      ),
+                      _buildSectionTitle("Infraestrutura"),
+                      _buildDropdown(
+                        "O local indicado dispõe de energia elétrica?",
+                        _energiaEletrica,
+                        ["Sim", "Não"],
+                        (value) => setState(() => _energiaEletrica = value),
+                      ),
+                      _buildDropdown(
+                        "O local indicado dispõe de banheiros?",
+                        _banheiros,
+                        ["Sim", "Não"],
+                        (value) => setState(() => _banheiros = value),
+                      ),
+                      _buildDropdown(
+                        "O local indicado dispõe de água potável?",
+                        _aguaPotavel,
+                        ["Sim", "Não"],
+                        (value) => setState(() => _aguaPotavel = value),
+                      ),
+                      _buildSectionTitle("Características do Setor"),
+                      _buildDropdown(
+                        "Esse setor possui:",
+                        _areaSetor,
+                        ["Área urbana", "Área rural", "Área urbana e rural"],
+                        (value) => setState(() => _areaSetor = value),
+                      ),
+                      if (_areaSetor != null && _areaSetor!.contains("urbana"))
+                        _buildMultiItemField(
+                          label: "Bairros existentes:",
+                          items: bairrosList,
+                          inputController: _bairroInputController,
+                          hintText: "Digite um bairro e clique +",
+                          isRequired: true,
+                        ),
+                      SizedBox(height: 15),
+                      if (_areaSetor != null && _areaSetor!.contains("rural"))
+                        _buildMultiItemField(
+                          label: "Localidades rurais existentes:",
+                          items: localidadesRuraisList,
+                          inputController: _localidadeInputController,
+                          hintText: "Digite uma localidade e clique +",
+                          isRequired: true,
+                        ),
+                      SizedBox(height: 15),
+                      _buildSectionTitle("Abastecimento de Água"),
+                      if (_areaSetor != null && _areaSetor!.contains("urbana"))
+                        _buildMultiSelect(
+                          question:
+                              "Quais são as fontes de abastecimento de água existentes na área urbana?",
+                          selected: _fontesAbastecimentoUrbana,
+                          options: [
+                            "Rio",
+                            "Riacho",
+                            "Cisterna/Água da Chuva",
+                            "Cisterna/Pipa",
+                            "Poço comunitário",
+                            "Poço próprio",
+                            "Outro"
+                          ],
+                          onChanged: (value) => setState(
+                              () => _fontesAbastecimentoUrbana = value),
+                        ),
+                      if (_areaSetor != null && _areaSetor!.contains("rural"))
+                        _buildMultiSelect(
+                          question:
+                              "Quais são as fontes de abastecimento de água existentes na área rural?",
+                          selected: _fontesAbastecimentoRural,
+                          options: [
+                            "Rio",
+                            "Riacho",
+                            "Cisterna/Água da Chuva",
+                            "Cisterna/Pipa",
+                            "Poço comunitário",
+                            "Poço próprio",
+                            "Outro"
+                          ],
+                          onChanged: (value) =>
+                              setState(() => _fontesAbastecimentoRural = value),
+                        ),
+                      _buildSectionTitle("Responsáveis pelo Abastecimento"),
+                      if (_areaSetor != null && _areaSetor!.contains("urbana"))
+                        _buildMultiSelectWithJustification(
+                          question:
+                              "Quem é o responsável pelo abastecimento de água na área urbana?",
+                          selected: _responsaveisAguaUrbana,
+                          options: [
+                            "Prefeitura (secretaria)",
+                            "SAAE",
+                            "Exército",
+                            "Outro"
+                          ],
+                          onChanged: (value) =>
+                              setState(() => _responsaveisAguaUrbana = value),
+                          justificationController:
+                              _justificativaUrbanaController,
+                        ),
+                      if (_areaSetor != null && _areaSetor!.contains("rural"))
+                        _buildMultiSelectWithJustification(
+                          question:
+                              "Quem é o responsável pelo abastecimento de água na área rural?",
+                          selected: _responsaveisAguaRural,
+                          options: [
+                            "Prefeitura (secretaria)",
+                            "SAAE",
+                            "Exército",
+                            "Outro"
+                          ],
+                          onChanged: (value) =>
+                              setState(() => _responsaveisAguaRural = value),
+                          justificationController:
+                              _justificativaRuralController,
+                        ),
+                      if (_areaSetor != null &&
+                          _areaSetor!.contains("urbana")) ...[
+                        _buildSectionTitle("Gestão de Esgoto (Urbano)"),
+                        _buildDropdown(
+                          "Há coleta de esgoto doméstico na área urbana?",
+                          _coletaEsgotoUrbana,
+                          ["Sim", "Não"],
+                          (value) =>
+                              setState(() => _coletaEsgotoUrbana = value),
+                        ),
+                        if (_coletaEsgotoUrbana == "Sim") ...[
+                          _buildDropdown(
+                            "O esgoto doméstico coletado na área urbana passa por algum tipo de tratamento?",
+                            _tratamentoEsgoto,
+                            ["Sim", "Não"],
+                            (value) =>
+                                setState(() => _tratamentoEsgoto = value),
+                          ),
+                          if (_tratamentoEsgoto == "Sim") ...[
+                            _buildDropdown(
+                              "Quem é o responsável pelos sistemas de esgotos domésticos?",
+                              _responsavelEsgoto,
+                              ["Morador", "Prefeitura", "Outro"],
+                              (value) =>
+                                  setState(() => _responsavelEsgoto = value),
+                            ),
+                            const SizedBox(height: 10),
+                            if (_responsavelEsgoto == "Outro")
+                              TextFormField(
+                                controller: _outroResponsavelEsgotoController,
+                                decoration: InputDecoration(
+                                  labelText: "Especificar responsável:",
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide:
+                                        BorderSide(color: Colors.blue.shade200),
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                ),
+                                validator: (value) =>
+                                    (_responsavelEsgoto == "Outro" &&
+                                            value!.isEmpty)
+                                        ? "Campo obrigatório"
+                                        : null,
+                              ),
+                          ],
+                        ],
+                      ],
+                      if (_areaSetor != null &&
+                          _areaSetor!.contains("rural")) ...[
+                        _buildSectionTitle("Gestão de Esgoto (Rural)"),
+                        _buildDropdown(
+                          "Há coleta de esgoto doméstico na área rural?",
+                          _coletaEsgotoRural,
+                          ["Sim", "Não"],
+                          (value) => setState(() => _coletaEsgotoRural = value),
+                        ),
+                        if (_coletaEsgotoRural == "Sim") ...[
+                          _buildDropdown(
+                            "O esgoto doméstico coletado na área rural passa por algum tipo de tratamento?",
+                            _tratamentoEsgotoRural,
+                            ["Sim", "Não"],
+                            (value) =>
+                                setState(() => _tratamentoEsgotoRural = value),
+                          ),
+                          if (_tratamentoEsgotoRural == "Sim") ...[
+                            _buildDropdown(
+                              "Quem é o responsável pelos sistemas de esgotos domésticos?",
+                              _responsavelEsgotoRural,
+                              ["Morador", "Prefeitura", "Outro"],
+                              (value) => setState(
+                                  () => _responsavelEsgotoRural = value),
+                            ),
+                            const SizedBox(height: 10),
+                            if (_responsavelEsgotoRural == "Outro")
+                              TextFormField(
+                                controller:
+                                    _outroResponsavelEsgotoRuralController,
+                                decoration: InputDecoration(
+                                  labelText: "Especificar responsável:",
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide:
+                                        BorderSide(color: Colors.blue.shade200),
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                ),
+                                validator: (value) =>
+                                    (_responsavelEsgotoRural == "Outro" &&
+                                            value!.isEmpty)
+                                        ? "Campo obrigatório"
+                                        : null,
+                              ),
+                          ],
+                        ],
+                      ],
+                      _buildSectionTitle("Gestão de Resíduos"),
+                      if (_areaSetor != null &&
+                          _areaSetor!.contains("urbana")) ...[
+                        _buildDropdown(
+                          "Há coleta de resíduos sólidos na área urbana?",
+                          _coletaResiduosUrbana,
+                          ["Sim", "Não"],
+                          (value) =>
+                              setState(() => _coletaResiduosUrbana = value),
+                        ),
+                        if (_coletaResiduosUrbana == "Sim")
                           TextFormField(
-                            controller: _outroResponsavelEsgotoController,
-                            decoration: const InputDecoration(
-                              labelText: "Especificar responsável:",
-                              border: OutlineInputBorder(),
+                            controller: _responsavelResiduosUrbanoController,
+                            decoration: InputDecoration(
+                              labelText:
+                                  "Quem é o responsável pela coleta de resíduos sólidos?",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide:
+                                    BorderSide(color: Colors.blue.shade200),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
                             ),
                             validator: (value) =>
-                                (_responsavelEsgoto == "Outro" &&
+                                (_coletaResiduosUrbana == "Sim" &&
                                         value!.isEmpty)
                                     ? "Campo obrigatório"
                                     : null,
                           ),
                       ],
+                      if (_areaSetor != null &&
+                          _areaSetor!.contains("rural")) ...[
+                        _buildDropdown(
+                          "Há coleta de resíduos sólidos na área rural?",
+                          _coletaResiduosRural,
+                          ["Sim", "Não"],
+                          (value) =>
+                              setState(() => _coletaResiduosRural = value),
+                        ),
+                        if (_coletaResiduosRural == "Sim")
+                          TextFormField(
+                            controller: _responsavelResiduosRuralController,
+                            decoration: InputDecoration(
+                              labelText:
+                                  "Quem é o responsável pela coleta de resíduos sólidos?",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide:
+                                    BorderSide(color: Colors.blue.shade200),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                            validator: (value) =>
+                                (_coletaResiduosRural == "Sim" &&
+                                        value!.isEmpty)
+                                    ? "Campo obrigatório"
+                                    : null,
+                          ),
+                      ],
+                      const SizedBox(height: 30),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: _saveSetor,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue.shade800,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 30, vertical: 15),
+                          ),
+                          child: const Text(
+                            "SALVAR QUESTIONÁRIO",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
-                    _buildSectionTitle("Gestão de Resíduos"),
-                    _buildDropdown(
-                      "17. Coleta de resíduos urbanos:",
-                      _coletaResiduosUrbana,
-                      ["Sim", "Não"],
-                      (value) => setState(() => _coletaResiduosUrbana = value),
-                    ),
-                    if (_coletaResiduosUrbana == "Sim")
-                      TextFormField(
-                        controller: _responsavelResiduosUrbanoController,
-                        decoration: const InputDecoration(
-                          labelText: "Responsável urbano:",
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) =>
-                            (_coletaResiduosUrbana == "Sim" && value!.isEmpty)
-                                ? "Campo obrigatório"
-                                : null,
-                      ),
-                    _buildDropdown(
-                      "18. Coleta de resíduos rurais:",
-                      _coletaResiduosRural,
-                      ["Sim", "Não"],
-                      (value) => setState(() => _coletaResiduosRural = value),
-                    ),
-                    if (_coletaResiduosRural == "Sim")
-                      TextFormField(
-                        controller: _responsavelResiduosRuralController,
-                        decoration: const InputDecoration(
-                          labelText: "Responsável rural:",
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) =>
-                            (_coletaResiduosRural == "Sim" && value!.isEmpty)
-                                ? "Campo obrigatório"
-                                : null,
-                      ),
-                    const SizedBox(height: 30),
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: _saveSetor,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 40, vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: const Text(
-                          "SALVAR QUESTIONÁRIO",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -708,17 +1125,87 @@ class _SetorFormScreenState extends State<SetorFormScreen> {
     _localController.dispose();
     _capacidadeController.dispose();
     _distanciaController.dispose();
-    _bairrosController.dispose();
-    _localidadesRuraisController.dispose();
+    _bairroInputController.dispose();
+    _localidadeInputController.dispose();
     _outraFonteUrbanaController.dispose();
     _outraFonteRuralController.dispose();
     _outroResponsavelUrbanoController.dispose();
     _outroResponsavelRuralController.dispose();
     _outroResponsavelEsgotoController.dispose();
+    _outroResponsavelEsgotoRuralController.dispose();
     _responsavelResiduosUrbanoController.dispose();
     _responsavelResiduosRuralController.dispose();
     _justificativaUrbanaController.dispose();
     _justificativaRuralController.dispose();
     super.dispose();
+  }
+
+  Widget _buildMultiItemField({
+    required String label,
+    required List<String> items,
+    required TextEditingController inputController,
+    required String hintText,
+    bool isRequired = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildQuestion(label),
+        // Exibe os itens adicionados (como chips, com opção de remoção)
+        Wrap(
+          spacing: 8,
+          children: items
+              .map(
+                (item) => Chip(
+                  backgroundColor: Colors.blue.shade50,
+                  deleteIconColor: Colors.blue.shade800,
+                  labelStyle: TextStyle(color: Colors.blue.shade900),
+                  label: Text(item),
+                  onDeleted: () {
+                    setState(() {
+                      items.remove(item);
+                    });
+                  },
+                ),
+              )
+              .toList(),
+        ),
+        SizedBox(height: 16),
+        // Campo de entrada com botão "+"
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: inputController,
+                decoration: InputDecoration(
+                  hintText: hintText,
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.add),
+              onPressed: () {
+                if (inputController.text.trim().isNotEmpty) {
+                  setState(() {
+                    items.add(inputController.text.trim());
+                    inputController.clear();
+                  });
+                }
+              },
+            ),
+          ],
+        ),
+
+        if (isRequired && items.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Text(
+              "Campo obrigatório",
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+      ],
+    );
   }
 }

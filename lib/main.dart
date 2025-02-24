@@ -2,6 +2,7 @@ import 'package:Redeplansanea/formularios/presenca/forms_page.dart';
 import 'package:Redeplansanea/produtos/produto_a/produto_a.dart';
 import 'package:Redeplansanea/produtos/produto_a/views/formacao_comite_form.dart';
 import 'package:Redeplansanea/produtos/produto_b/info_caracterizacao/caracteriza%C3%A7%C3%A3o_municipio.dart';
+import 'package:Redeplansanea/produtos/produto_b/produto_b.dart';
 import 'package:Redeplansanea/router.dart';
 import 'package:Redeplansanea/view/home.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -249,8 +250,7 @@ class _ProdutosState extends State<Produtos> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => CaracterizacaoMunicipioScreen()),
+                  MaterialPageRoute(builder: (context) => ProdutoB_menu()),
                 );
               },
             )
