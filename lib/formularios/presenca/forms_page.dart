@@ -2,6 +2,7 @@ import 'package:Redeplansanea/formularios/mapeamentoatores/todas_respostas_mapea
 import 'package:Redeplansanea/formularios/presenca/todas_respostas.dart';
 import 'package:Redeplansanea/formularios/presencacomite/todas_respostas_comite.dart';
 import 'package:Redeplansanea/formularios/satisfacao/todas_respostas_satisfacao.dart';
+import 'package:Redeplansanea/formularios/votacao/todas_votacoes.dart';
 import 'package:Redeplansanea/main.dart';
 import 'package:Redeplansanea/singleton.dart';
 import 'package:flutter/material.dart';
@@ -86,7 +87,7 @@ class ListPage extends StatelessWidget {
         "Jataúba",
         "Serrita",
         "Joaquim Nabuco",
-        "Laoa do Ouro",
+        "Lagoa do Ouro",
         "Trindade",
         "Maraial",
         "Mirandiba",
@@ -485,6 +486,34 @@ class ListPage extends StatelessWidget {
                   PageRouteBuilder(
                     pageBuilder: (context, animation, secondaryAnimation) =>
                         AdminScreenMapeamento(),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      const curve = Curves.easeInOut;
+
+                      var fadeAnimation = CurvedAnimation(
+                        parent: animation,
+                        curve: curve,
+                      );
+
+                      return FadeTransition(
+                        opacity: fadeAnimation,
+                        child: child,
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+            buildAnimatedCard(
+              context,
+              title: 'Votação',
+              subtitle: 'Sistema simples de votação, intuitivo e seguro.',
+              imagePath: 'assets/ico_votacao.png',
+              onTap: () {
+                Navigator.of(context).push(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        AdminScreenVotacao(),
                     transitionsBuilder:
                         (context, animation, secondaryAnimation, child) {
                       const curve = Curves.easeInOut;

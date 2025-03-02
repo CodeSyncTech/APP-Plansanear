@@ -33,8 +33,9 @@ class AuthController {
         final userDoc =
             await _firestore.collection('users').doc(user.uid).get();
         final currentUserLevel = userDoc.data()?['nivelConta'] as int? ?? 4;
-
-        if (currentUserLevel > nivelConta) {
+        if (currentUserLevel == 0) {
+          throw Exception('Conta nível 0 não pode criar conta nível 1');
+        } else if (currentUserLevel != 1) {
           throw Exception('Permissão insuficiente para criar esta conta');
         }
       }

@@ -1,5 +1,6 @@
 import 'package:Redeplansanea/downloads/download_lista_presenca.dart';
 import 'package:Redeplansanea/formularios/presenca/lista_presenca.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
@@ -15,6 +16,27 @@ class AdminScreen extends StatefulWidget {
 class _AdminScreenState extends State<AdminScreen> {
   final TextEditingController _searchController = TextEditingController();
   String searchQuery = "";
+
+  User? get _currentUser => FirebaseAuth.instance.currentUser;
+  Map<String, dynamic>? userData;
+
+  @override
+  void initState() {
+    super.initState();
+    // Carrega os dados do usuário
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_currentUser?.uid)
+        .get();
+
+    setState(() {
+      userData = doc.data() as Map<String, dynamic>?;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -280,29 +302,39 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   void _confirmarExclusao(BuildContext context, String idFormulario) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Confirmar Exclusão"),
-        content: const Text("Tem certeza que deseja excluir este formulário?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text("Cancelar"),
-          ),
-          TextButton(
-            onPressed: () {
-              FirebaseFirestore.instance
-                  .collection('formularios')
-                  .doc(idFormulario)
-                  .delete();
-              Navigator.pop(ctx);
-            },
-            child: const Text("Excluir", style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+    if (userData?['nivelConta'] == 1) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text("Confirmar Exclusão"),
+          content:
+              const Text("Tem certeza que deseja excluir este formulário?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("Cancelar"),
+            ),
+            TextButton(
+              onPressed: () {
+                FirebaseFirestore.instance
+                    .collection('formularios')
+                    .doc(idFormulario)
+                    .delete();
+                Navigator.pop(ctx);
+              },
+              child: const Text("Excluir", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Apenas administradores podem excluir formulários.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }
 
@@ -554,6 +586,9 @@ class RespostasScreen extends StatelessWidget {
   }
 }
 
+// userData será carregado assincronamente
+Map<String, dynamic>? userData;
+
 // Ajustando _RespostaCard para incluir a exclusão de respostas
 class _RespostaCard extends StatelessWidget {
   final Map<String, dynamic> resposta;
@@ -562,29 +597,38 @@ class _RespostaCard extends StatelessWidget {
   const _RespostaCard({required this.resposta, required this.idResposta});
 
   void _confirmarExclusao(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Confirmar Exclusão"),
-        content: const Text("Tem certeza que deseja excluir esta resposta?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text("Cancelar"),
-          ),
-          TextButton(
-            onPressed: () {
-              FirebaseFirestore.instance
-                  .collection('respostas')
-                  .doc(idResposta)
-                  .delete();
-              Navigator.pop(ctx);
-            },
-            child: const Text("Excluir", style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+    if (userData?['nivelConta'] == 1) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text("Confirmar Exclusão"),
+          content: const Text("Tem certeza que deseja excluir esta resposta?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("Cancelar"),
+            ),
+            TextButton(
+              onPressed: () {
+                FirebaseFirestore.instance
+                    .collection('respostas')
+                    .doc(idResposta)
+                    .delete();
+                Navigator.pop(ctx);
+              },
+              child: const Text("Excluir", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Apenas administradores podem excluir formulários.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override

@@ -134,7 +134,7 @@ class _CriarFormularioScreenState extends State<CriarFormularioScreen> {
       "Jataúba",
       "Serrita",
       "Joaquim Nabuco",
-      "Laoa do Ouro",
+      "Lagoa do Ouro",
       "Trindade",
       "Maraial",
       "Mirandiba",

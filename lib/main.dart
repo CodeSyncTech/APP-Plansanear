@@ -83,7 +83,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
       // Monta a lista _pages com base no nível da conta
       _pages = [
         // Se o nível for 1, adiciona a ListPage antes das demais páginas
-        if (userData!['nivelConta'] == 1) ...[
+        if (userData!['nivelConta'] == 1 || userData!['nivelConta'] == 0) ...[
           ListPage(),
         ],
         const Produtos(),
@@ -101,7 +101,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
 
     // Constrói os itens da navegação conforme o nível da conta
     List<Widget> navItems = [];
-    if (userData!['nivelConta'] == 1) {
+    if (userData!['nivelConta'] == 1 || userData!['nivelConta'] == 0) {
       navItems.add(const Icon(Icons.list, size: 30));
     }
     navItems.addAll([

@@ -276,29 +276,39 @@ class _AdminScreenComiteState extends State<AdminScreenComite> {
   }
 
   void _confirmarExclusao(BuildContext context, String idFormulario) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Confirmar Exclusão"),
-        content: const Text("Tem certeza que deseja excluir este formulário?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text("Cancelar"),
-          ),
-          TextButton(
-            onPressed: () {
-              FirebaseFirestore.instance
-                  .collection('formulariosComite')
-                  .doc(idFormulario)
-                  .delete();
-              Navigator.pop(ctx);
-            },
-            child: const Text("Excluir", style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+    if (userData?['nivelConta'] == 1) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text("Confirmar Exclusão"),
+          content:
+              const Text("Tem certeza que deseja excluir este formulário?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("Cancelar"),
+            ),
+            TextButton(
+              onPressed: () {
+                FirebaseFirestore.instance
+                    .collection('formulariosComite')
+                    .doc(idFormulario)
+                    .delete();
+                Navigator.pop(ctx);
+              },
+              child: const Text("Excluir", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Apenas administradores podem excluir formulários.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }
 
@@ -532,6 +542,9 @@ class RespostasScreen extends StatelessWidget {
   }
 }
 
+// userData será carregado assincronamente
+Map<String, dynamic>? userData;
+
 // Ajustando _RespostaCard para incluir a exclusão de respostas
 class _RespostaCard extends StatelessWidget {
   final Map<String, dynamic> resposta;
@@ -540,29 +553,38 @@ class _RespostaCard extends StatelessWidget {
   const _RespostaCard({required this.resposta, required this.idResposta});
 
   void _confirmarExclusao(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Confirmar Exclusão"),
-        content: const Text("Tem certeza que deseja excluir esta resposta?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text("Cancelar"),
-          ),
-          TextButton(
-            onPressed: () {
-              FirebaseFirestore.instance
-                  .collection('respostasComite')
-                  .doc(idResposta)
-                  .delete();
-              Navigator.pop(ctx);
-            },
-            child: const Text("Excluir", style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+    if (userData?['nivelConta'] == 1) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text("Confirmar Exclusão"),
+          content: const Text("Tem certeza que deseja excluir esta resposta?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("Cancelar"),
+            ),
+            TextButton(
+              onPressed: () {
+                FirebaseFirestore.instance
+                    .collection('respostasComite')
+                    .doc(idResposta)
+                    .delete();
+                Navigator.pop(ctx);
+              },
+              child: const Text("Excluir", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Apenas administradores podem excluir formulários.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override

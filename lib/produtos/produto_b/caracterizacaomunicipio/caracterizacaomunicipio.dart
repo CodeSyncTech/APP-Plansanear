@@ -75,24 +75,235 @@ class _Tela3State extends State<Tela3> {
     if (value != null) {
       dropdownValue = value ? "Sim" : "Não";
     }
-    return Row(
-      children: [
-        Expanded(child: Text(label)),
-        SizedBox(width: 16),
-        DropdownButton<String>(
-          value: dropdownValue,
-          items: [
-            DropdownMenuItem(value: "Sim", child: Text("Sim")),
-            DropdownMenuItem(value: "Não", child: Text("Não")),
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.blueGrey[800],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.blue.shade100),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: dropdownValue,
+                  items: [
+                    DropdownMenuItem<String>(
+                      value: "Sim",
+                      child: Text("Sim",
+                          style: TextStyle(color: Colors.green[800])),
+                    ),
+                    DropdownMenuItem<String>(
+                      value: "Não",
+                      child:
+                          Text("Não", style: TextStyle(color: Colors.red[800])),
+                    ),
+                  ],
+                  hint: Text("Selecione",
+                      style: TextStyle(color: Colors.blueGrey[400])),
+                  onChanged: (val) {
+                    if (val != null) {
+                      onChanged(val == "Sim" ? true : false);
+                    }
+                  },
+                ),
+              ),
+            ),
           ],
-          hint: Text("Selecione"),
-          onChanged: (val) {
-            if (val != null) {
-              onChanged(val == "Sim" ? true : false);
-            }
-          },
         ),
-      ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Tela 3 – Produto B",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            )),
+        centerTitle: true,
+        backgroundColor: Colors.blue[800],
+        elevation: 5,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.blue.shade50, Colors.white],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    "Informações – Produto B",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.blueGrey,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                _buildYesNoDropdown(
+                  label: "O Município possui Política de Saneamento?",
+                  value: _possuiPoliticaSaneamento,
+                  onChanged: (val) {
+                    setState(() {
+                      _possuiPoliticaSaneamento = val;
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+                if (_possuiPoliticaSaneamento == true) ...[
+                  _buildFileUploadSection(
+                    title: "Anexar documento para Política de Saneamento:",
+                    fileName: _politicaSaneamentoFileName,
+                    onPressed: () => _pickAndUploadFile("politicaSaneamento"),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                _buildYesNoDropdown(
+                  label: "Há Conselho Municipal de Saneamento Básico?",
+                  value: _haConselhoSaneamento,
+                  onChanged: (val) {
+                    setState(() {
+                      _haConselhoSaneamento = val;
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildYesNoDropdown(
+                  label: "O Município possui Plano Diretor?",
+                  value: _possuiPlanoDiretor,
+                  onChanged: (val) {
+                    setState(() {
+                      _possuiPlanoDiretor = val;
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+                if (_possuiPlanoDiretor == true) ...[
+                  _buildFileUploadSection(
+                    title: "Anexar documento para Plano Diretor:",
+                    fileName: _planoDiretorFileName,
+                    onPressed: () => _pickAndUploadFile("planoDiretor"),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                const SizedBox(height: 24),
+                Center(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.save_rounded, size: 22),
+                    label: const Text("SALVAR DADOS",
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5)),
+                    onPressed: _salvarDados,
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.blue[800],
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      elevation: 3,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFileUploadSection({
+    required String title,
+    required String? fileName,
+    required VoidCallback onPressed,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.blueGrey[700],
+                  fontWeight: FontWeight.w500,
+                )),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.upload_rounded, size: 20),
+              label: const Text("Selecionar Arquivo",
+                  style: TextStyle(fontSize: 14)),
+              onPressed: onPressed,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.blue[800],
+                backgroundColor: Colors.blue[50],
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+            if (fileName != null) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(Icons.check_circle_rounded,
+                      color: Colors.green[600], size: 20),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(fileName,
+                        style: TextStyle(
+                          color: Colors.blueGrey[800],
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        )),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
@@ -180,82 +391,5 @@ class _Tela3State extends State<Tela3> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("Erro ao salvar dados: $e")));
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Tela 3 – Produto B"),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Informações – Produto B:",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              _buildYesNoDropdown(
-                label: "O Município possui Política de Saneamento?",
-                value: _possuiPoliticaSaneamento,
-                onChanged: (val) {
-                  setState(() {
-                    _possuiPoliticaSaneamento = val;
-                  });
-                },
-              ),
-              if (_possuiPoliticaSaneamento == true) ...[
-                SizedBox(height: 8),
-                Text("Anexar documento para Política de Saneamento:"),
-                ElevatedButton(
-                  onPressed: () => _pickAndUploadFile("politicaSaneamento"),
-                  child: Text("Selecionar arquivo"),
-                ),
-                if (_politicaSaneamentoFileName != null)
-                  Text("Arquivo: $_politicaSaneamentoFileName"),
-              ],
-              _buildYesNoDropdown(
-                label: "Há Conselho Municipal de Saneamento Básico?",
-                value: _haConselhoSaneamento,
-                onChanged: (val) {
-                  setState(() {
-                    _haConselhoSaneamento = val;
-                  });
-                },
-              ),
-              _buildYesNoDropdown(
-                label: "O Município possui Plano Diretor?",
-                value: _possuiPlanoDiretor,
-                onChanged: (val) {
-                  setState(() {
-                    _possuiPlanoDiretor = val;
-                  });
-                },
-              ),
-              if (_possuiPlanoDiretor == true) ...[
-                SizedBox(height: 8),
-                Text("Anexar documento para Plano Diretor:"),
-                ElevatedButton(
-                  onPressed: () => _pickAndUploadFile("planoDiretor"),
-                  child: Text("Selecionar arquivo"),
-                ),
-                if (_planoDiretorFileName != null)
-                  Text("Arquivo: $_planoDiretorFileName"),
-              ],
-              SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
-                  child: Text("Salvar"),
-                  onPressed: _salvarDados,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

@@ -139,7 +139,7 @@ class _CriarFormularioScreenSatisfacaoState
       "Jataúba",
       "Serrita",
       "Joaquim Nabuco",
-      "Laoa do Ouro",
+      "Lagoa do Ouro",
       "Trindade",
       "Maraial",
       "Mirandiba",

@@ -1,43 +1,19 @@
-import 'package:Redeplansanea/formularios/presenca/lista_presenca.dart';
-import 'package:Redeplansanea/formularios/satisfacao/lista_presenca_satisfacao.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:Redeplansanea/formularios/votacao/lista_votacao.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class AdminScreenSatisfacao extends StatefulWidget {
-  const AdminScreenSatisfacao({Key? key}) : super(key: key);
+class AdminScreenVotacao extends StatefulWidget {
+  const AdminScreenVotacao({super.key});
 
   @override
-  _AdminScreenSatisfacaoState createState() => _AdminScreenSatisfacaoState();
+  _AdminScreenVotacaoState createState() => _AdminScreenVotacaoState();
 }
 
-class _AdminScreenSatisfacaoState extends State<AdminScreenSatisfacao> {
+class _AdminScreenVotacaoState extends State<AdminScreenVotacao> {
   final TextEditingController _searchController = TextEditingController();
   String searchQuery = "";
-
-  Map<String, dynamic>? userData;
-
-  User? get _currentUser => FirebaseAuth.instance.currentUser;
-
-  @override
-  void initState() {
-    super.initState();
-    // Carrega os dados do usuário
-    _loadUserData();
-  }
-
-  Future<void> _loadUserData() async {
-    DocumentSnapshot doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(_currentUser?.uid)
-        .get();
-
-    setState(() {
-      userData = doc.data() as Map<String, dynamic>?;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +61,7 @@ class _AdminScreenSatisfacaoState extends State<AdminScreenSatisfacao> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Gestão de Formulários',
+                              'Sistema de ',
                               style: GoogleFonts.roboto(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w400,
@@ -93,7 +69,7 @@ class _AdminScreenSatisfacaoState extends State<AdminScreenSatisfacao> {
                               ),
                             ),
                             Text(
-                              'Pesquisa de Satisfação',
+                              'Votação',
                               style: GoogleFonts.roboto(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w600,
@@ -105,16 +81,18 @@ class _AdminScreenSatisfacaoState extends State<AdminScreenSatisfacao> {
                       ],
                     ),
                   ),
+
                   // Botão de adicionar estilizado
                   IconButton(
-                    icon: const Icon(Icons.add),
+                    icon: Icon(Icons.add),
                     onPressed: () {
                       showModalBottomSheet(
                         context: context,
-                        isScrollControlled: true, // Modal ocupa mais espaço
+                        isScrollControlled:
+                            true, // Permite que o modal ocupe mais espaço
                         backgroundColor: Colors.transparent,
                         builder: (context) =>
-                            const CriarFormularioScreenSatisfacao(),
+                            const CriarFormularioScreenVotacao(),
                       );
                     },
                     style: IconButton.styleFrom(
@@ -167,8 +145,10 @@ class _AdminScreenSatisfacaoState extends State<AdminScreenSatisfacao> {
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
-                    .collection('formulariosSatisfacao')
-                    .orderBy('dataCriacao', descending: true)
+                    .collection('formulariosVotacao')
+                    .orderBy('dataCriacao',
+                        descending:
+                            true) // ORDENANDO DO MAIS RECENTE PARA O MAIS ANTIGO
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -179,13 +159,16 @@ class _AdminScreenSatisfacaoState extends State<AdminScreenSatisfacao> {
                       ),
                     );
                   }
+
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return const EmptyStateWidget(
                       icon: Icons.assignment_add,
                       message: "Nenhum formulário criado ainda",
                     );
                   }
+
                   var formularios = snapshot.data!.docs;
+
                   // Filtragem da lista com base na busca
                   var filteredFormularios = formularios.where((form) {
                     var formData = form.data() as Map<String, dynamic>;
@@ -204,9 +187,10 @@ class _AdminScreenSatisfacaoState extends State<AdminScreenSatisfacao> {
                           as Map<String, dynamic>;
                       final municipio =
                           '${form['municipio'] ?? "Sem Localização"} - ${form['estado'] ?? "Sem Localização"}';
+
                       final Future<int> quantidadeFuture = FirebaseFirestore
                           .instance
-                          .collection('respostasSatisfacao')
+                          .collection('respostasVotacao')
                           .where('idFormulario',
                               isEqualTo: filteredFormularios[index].id)
                           .get()
@@ -227,6 +211,7 @@ class _AdminScreenSatisfacaoState extends State<AdminScreenSatisfacao> {
                             return const Text('Erro ao carregar quantidade');
                           }
                           final int quantidade = snapshot.data ?? 0;
+
                           return _FormularioCard(
                             cidade: municipio,
                             quantidade: "Respostas: ${quantidade.toString()}",
@@ -275,9 +260,9 @@ class _AdminScreenSatisfacaoState extends State<AdminScreenSatisfacao> {
   }
 
   void _copiarLink(BuildContext context, String idFormulario) {
-    const baseUrl =
-        'https://plansanear.com.br/redeplansanea/v10/#/pesquisasatisfacao';
+    const baseUrl = 'https://plansanear.com.br/redeplansanea/v10/#/Votacao';
     final linkCompleto = '$baseUrl/$idFormulario';
+
     Clipboard.setData(ClipboardData(text: linkCompleto)).then((_) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -290,7 +275,6 @@ class _AdminScreenSatisfacaoState extends State<AdminScreenSatisfacao> {
   }
 
   void _confirmarExclusao(BuildContext context, String idFormulario) {
-    print("userData?['nivelConta']: ${userData?['nivelConta']}");
     if (userData?['nivelConta'] == 1) {
       showDialog(
         context: context,
@@ -306,7 +290,7 @@ class _AdminScreenSatisfacaoState extends State<AdminScreenSatisfacao> {
             TextButton(
               onPressed: () {
                 FirebaseFirestore.instance
-                    .collection('formulariosSatisfacao')
+                    .collection('formulariosVotacao')
                     .doc(idFormulario)
                     .delete();
                 Navigator.pop(ctx);
@@ -336,14 +320,13 @@ class _FormularioCard extends StatelessWidget {
   final VoidCallback onDelete;
 
   const _FormularioCard({
-    Key? key,
     required this.cidade,
     required this.quantidade,
     required this.dataCriacao,
     required this.onTap,
     required this.onCopy,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -425,15 +408,18 @@ class _FormularioCard extends StatelessWidget {
   }
 }
 
+// Mantenha as outras classes (RespostasScreen, _RespostaCard, _InfoRow, EmptyStateWidget)
+// com as alterações anteriores, atualizando apenas os detalhes de estilo conforme necessário
+
 class RespostasScreen extends StatelessWidget {
   final String idFormulario;
   final String municipio;
 
   const RespostasScreen({
-    Key? key,
+    super.key,
     required this.idFormulario,
     required this.municipio,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -450,7 +436,8 @@ class RespostasScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment:
+                    MainAxisAlignment.center, // Centralização principal
                 children: [
                   // Logo centralizado
                   Column(
@@ -470,7 +457,9 @@ class RespostasScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+
                   const SizedBox(width: 20),
+
                   // Título centralizado verticalmente
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -512,15 +501,14 @@ class RespostasScreen extends StatelessWidget {
         ),
         child: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
-              .collection('respostasSatisfacao')
+              .collection('respostasVotacao')
               .where('idFormulario', isEqualTo: idFormulario)
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(
-                child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
-              );
+                  child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)));
             }
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
               return const EmptyStateWidget(
@@ -528,17 +516,21 @@ class RespostasScreen extends StatelessWidget {
                 message: "Nenhuma resposta encontrada",
               );
             }
+
             var respostas = snapshot.data!.docs;
+
             return ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: respostas.length,
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 var resposta = respostas[index].data() as Map<String, dynamic>;
-                String idResposta = respostas[index].id;
+                String idResposta = respostas[index]
+                    .id; // Obtendo corretamente a ID da resposta
+
                 return _RespostaCard(
                   resposta: resposta,
-                  idResposta: idResposta,
+                  idResposta: idResposta, // Agora passando a ID correta
                 );
               },
             );
@@ -552,17 +544,13 @@ class RespostasScreen extends StatelessWidget {
 // userData será carregado assincronamente
 Map<String, dynamic>? userData;
 
+// Ajustando _RespostaCard para incluir a exclusão de respostas
 class _RespostaCard extends StatelessWidget {
   final Map<String, dynamic> resposta;
   final String idResposta;
 
-  const _RespostaCard({
-    Key? key,
-    required this.resposta,
-    required this.idResposta,
-  }) : super(key: key);
+  const _RespostaCard({required this.resposta, required this.idResposta});
 
-  // Exibe diálogo para confirmar a exclusão da resposta
   void _confirmarExclusao(BuildContext context) {
     if (userData?['nivelConta'] == 1) {
       showDialog(
@@ -578,7 +566,7 @@ class _RespostaCard extends StatelessWidget {
             TextButton(
               onPressed: () {
                 FirebaseFirestore.instance
-                    .collection('respostasSatisfacao')
+                    .collection('respostasVotacao')
                     .doc(idResposta)
                     .delete();
                 Navigator.pop(ctx);
@@ -598,103 +586,8 @@ class _RespostaCard extends StatelessWidget {
     }
   }
 
-  // Retorna a cor de fundo de acordo com a nota (1 a 5)
-  Color _getRatingColor(int rating) {
-    final hues = [
-      Colors.red[400]!,
-      Colors.orange[400]!,
-      Colors.yellow[600]!,
-      Colors.lightGreen[400]!,
-      Colors.green[400]!
-    ];
-    return hues[rating - 1];
-  }
-
-  // Retorna o label descritivo da nota
-  String _getRatingLabel(int rating) {
-    switch (rating) {
-      case 1:
-        return "Muito insatisfeito";
-      case 2:
-        return "Insatisfeito";
-      case 3:
-        return "Neutro";
-      case 4:
-        return "Satisfeito";
-      case 5:
-        return "Muito satisfeito";
-      default:
-        return "Não informado";
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Obtém a lista de respostas (supõe-se que seja um array com índices 0 a 4 para as escalas)
-    List<dynamic>? respostasList = resposta['respostas'];
-    List<Widget> ratingWidgets = [];
-    if (respostasList != null && respostasList is List) {
-      int totalRatingQuestions =
-          respostasList.length >= 5 ? 5 : respostasList.length;
-      for (int i = 0; i < totalRatingQuestions; i++) {
-        int? rating;
-        if (respostasList[i] is int) {
-          rating = respostasList[i] as int;
-        } else if (respostasList[i] is String) {
-          rating = int.tryParse(respostasList[i]) ?? 0;
-        }
-        ratingWidgets.add(
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              children: [
-                Text(
-                  "Pergunta ${i + 1}:",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(width: 8),
-                if (rating != null && rating > 0)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _getRatingColor(rating),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      "$rating - ${_getRatingLabel(rating)}",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  )
-                else
-                  const Text("Não informado"),
-              ],
-            ),
-          ),
-        );
-      }
-      // Se houver observações no índice 5, exibe-as
-      if (respostasList.length > 5) {
-        String observation = respostasList[5]?.toString() ?? "";
-        if (observation.trim().isNotEmpty) {
-          ratingWidgets.add(
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                "Observações: $observation",
-                style: const TextStyle(fontStyle: FontStyle.italic),
-              ),
-            ),
-          );
-        }
-      }
-    } else {
-      ratingWidgets.add(const Text("Nenhuma resposta registrada."));
-    }
-
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -703,7 +596,6 @@ class _RespostaCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cabeçalho: nome do respondente e botão de exclusão
             Row(
               children: [
                 const Icon(Icons.person, size: 18, color: Colors.blue),
@@ -722,10 +614,19 @@ class _RespostaCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            // Exibe as respostas das escalas (número da pergunta e indicador colorido)
-            ...ratingWidgets,
-            const SizedBox(height: 12),
-            // Data e hora da resposta
+            _InfoRow(
+              icon: Icons.phone,
+              text: resposta['telefone'] ?? 'Não informado',
+            ),
+            _InfoRow(
+              icon: Icons.work,
+              text: resposta['vinculo'] ?? 'Não informado',
+            ),
+            _InfoRow(
+              icon: Icons.group,
+              text: resposta['Votacao'] ?? 'Não informado',
+            ),
+            const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -755,8 +656,7 @@ class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _InfoRow({Key? key, required this.icon, required this.text})
-      : super(key: key);
+  const _InfoRow({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -779,10 +679,10 @@ class EmptyStateWidget extends StatelessWidget {
   final String message;
 
   const EmptyStateWidget({
-    Key? key,
+    super.key,
     required this.icon,
     required this.message,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

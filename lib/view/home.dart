@@ -20,9 +20,25 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int? _accountLevel;
+
+  User? get _currentUser => FirebaseAuth.instance.currentUser;
+  Map<String, dynamic>? userData;
+
+  Future<void> _loadUserData() async {
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_currentUser?.uid)
+        .get();
+
+    setState(() {
+      userData = doc.data() as Map<String, dynamic>?;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    _loadUserData();
     _fetchUserAccountLevel();
   }
 
@@ -69,7 +85,8 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildAuthInfo(),
           const SizedBox(height: 25),
           _buildProfileInfo(),
-          if (_accountLevel == 1) buildAdminPanel(context),
+          if (_accountLevel == 1 || _accountLevel == 0)
+            buildAdminPanel(context),
           const SizedBox(height: 30),
           SizedBox(height: 20),
           Container(
@@ -416,29 +433,38 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _confirmDeleteUser(String docId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar Exclusão'),
-        content: const Text('Tem certeza que deseja excluir este usuário?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () async {
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(docId)
-                  .delete();
-              Navigator.pop(context);
-            },
-            child: const Text('Excluir', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+    if (userData?['nivelConta'] == 1) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Confirmar Exclusão'),
+          content: const Text('Tem certeza que deseja excluir este usuário?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(docId)
+                    .delete();
+                Navigator.pop(context);
+              },
+              child: const Text('Excluir', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Apenas administradores podem excluir formulários.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Widget _buildProfileInfo() {

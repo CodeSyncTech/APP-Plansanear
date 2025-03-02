@@ -3,6 +3,7 @@ import 'package:Redeplansanea/formularios/presenca/lista_presenca.dart';
 import 'package:Redeplansanea/formularios/presenca/todas_respostas.dart';
 import 'package:Redeplansanea/formularios/presencacomite/lista_presenca_comite.dart';
 import 'package:Redeplansanea/formularios/satisfacao/lista_presenca_satisfacao.dart';
+import 'package:Redeplansanea/formularios/votacao/lista_votacao.dart';
 import 'package:Redeplansanea/main.dart';
 
 import 'package:Redeplansanea/produtos/produto_a/produto_a.dart';
@@ -16,10 +17,13 @@ final GoRouter router = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      pageBuilder: (context, state) => MaterialPage(
-        key: state.pageKey,
-        child: AuthScreen(),
-      ),
+      pageBuilder: (context, state) {
+        final user = FirebaseAuth.instance.currentUser;
+        return MaterialPage(
+          key: state.pageKey,
+          child: user != null ? BottomNavBar() : AuthScreen(),
+        );
+      },
     ),
     GoRoute(
       path: '/home',
@@ -86,6 +90,15 @@ final GoRouter router = GoRouter(
       pageBuilder: (context, state) => MaterialPage(
         key: state.pageKey,
         child: RespondidoScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/votacao/:idFormulario',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: ResponderFormularioScreenVotacao(
+          idFormulario: state.pathParameters['idFormulario']!,
+        ),
       ),
     ),
   ],

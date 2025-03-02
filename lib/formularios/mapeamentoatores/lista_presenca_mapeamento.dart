@@ -141,7 +141,7 @@ class _CriarFormularioScreenMapeamentoState
       "Jataúba",
       "Serrita",
       "Joaquim Nabuco",
-      "Laoa do Ouro",
+      "Lagoa do Ouro",
       "Trindade",
       "Maraial",
       "Mirandiba",
@@ -172,7 +172,7 @@ class _CriarFormularioScreenMapeamentoState
   String? _municipioSelecionado;
 
   String _generateLink(String idFormulario) {
-    return 'https://plansanear.com.br/redeplansanea/v9#/mapeamento/$idFormulario';
+    return 'https://plansanear.com.br/redeplansanea/v10/#/mapeamento/$idFormulario';
   }
 
   Future<void> _submitFormMapeamento() async {
