@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import '../view/auth_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -620,9 +621,8 @@ class _HomeScreenState extends State<HomeScreen> {
           TextButton(
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const AuthScreen()),
-              );
+
+              GoRouter.of(context).go('/login');
             },
             child: const Text('Sair', style: TextStyle(color: Colors.red)),
           ),

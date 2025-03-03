@@ -68,6 +68,7 @@ dependencies:
   firebase_storage: ^12.4.3
   pdf: ^3.11.3
   printing: ^5.14.2
+  just_audio: ^0.9.46
 
 flutter_native_splash:
   color: "#FFFFFF"
@@ -108,6 +109,8 @@ flutter:
     - assets/
     - assets/bandeiras/
     - assets/capaProdutos/
+    - assets/votacao/
+    - assets/votacao/ok.mp3
     - assets/fonts/
   #   - images/a_dot_ham.jpeg
 
