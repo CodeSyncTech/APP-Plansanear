@@ -593,8 +593,13 @@ Map<String, dynamic>? userData;
 class _RespostaCard extends StatelessWidget {
   final Map<String, dynamic> resposta;
   final String idResposta;
+  final bool readOnly; // novo parâmetro
 
-  const _RespostaCard({required this.resposta, required this.idResposta});
+  const _RespostaCard({
+    required this.resposta,
+    required this.idResposta,
+    this.readOnly = false,
+  });
 
   void _confirmarExclusao(BuildContext context) {
     if (userData?['nivelConta'] == 1) {
@@ -652,10 +657,11 @@ class _RespostaCard extends StatelessWidget {
                         fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _confirmarExclusao(context),
-                ),
+                if (!readOnly)
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => _confirmarExclusao(context),
+                  ),
               ],
             ),
             const SizedBox(height: 12),
@@ -740,6 +746,163 @@ class EmptyStateWidget extends StatelessWidget {
                   fontWeight: FontWeight.w500)),
         ],
       ),
+    );
+  }
+}
+
+class VisualizacaoRespostaPage extends StatelessWidget {
+  final String uuid;
+
+  const VisualizacaoRespostaPage({Key? key, required this.uuid})
+      : super(key: key);
+
+  // Função que consulta os dados do formulário a partir do uuid
+  Future<DocumentSnapshot> _getFormData() async {
+    return FirebaseFirestore.instance.collection('formularios').doc(uuid).get();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<DocumentSnapshot>(
+      future: _getFormData(),
+      builder: (context, snapshot) {
+        // Enquanto os dados não chegam, exibe um loading
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // Verifica se os dados foram encontrados
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const Scaffold(
+            body: Center(child: Text('Dados do formulário não encontrados.')),
+          );
+        }
+
+        // Recupera os dados (supondo que os campos sejam 'municipio' e 'estado')
+        final formData = snapshot.data!.data() as Map<String, dynamic>;
+        final String municipio =
+            formData['municipio'] ?? 'Município não definido';
+        final String estado = formData['estado'] ?? 'Estado não definido';
+        return Scaffold(
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(100.0),
+            child: AppBar(
+              elevation: 2,
+              shadowColor: Colors.blue.shade100,
+              flexibleSpace: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Logo centralizado
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Image.asset(
+                              'assets/logoredeplanrmbg.png',
+                              height: 50,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 20),
+                      // Título centralizado verticalmente
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Lista de Presença',
+                            style: GoogleFonts.roboto(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          Flexible(
+                            child: Text(
+                              "$municipio - $estado", // Certifique-se de que a variável "municipio" esteja definida
+                              style: GoogleFonts.roboto(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.blue.shade800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFE3F2FD), Color(0xFFBBDEFB)],
+              ),
+            ),
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('respostas')
+                  .where('idFormulario',
+                      isEqualTo: uuid) // Usa o uuid passado como parâmetro
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                    ),
+                  );
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const EmptyStateWidget(
+                    icon: Icons.assignment_ind,
+                    message: "Nenhuma resposta encontrada",
+                  );
+                }
+
+                var respostas = snapshot.data!.docs;
+
+                return ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: respostas.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    var resposta =
+                        respostas[index].data() as Map<String, dynamic>;
+                    String idResposta = respostas[index].id;
+                    // Aqui, passamos readOnly: true para esconder o botão de exclusão
+                    return _RespostaCard(
+                      resposta: resposta,
+                      idResposta: idResposta,
+                      readOnly: true,
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -1148,3 +1148,221 @@ class _ConfiguracaoVotacaoPopupState extends State<ConfiguracaoVotacaoPopup> {
     );
   }
 }
+
+class VisualizacaoVotacaoScreen extends StatelessWidget {
+  final String idFormulario;
+
+  const VisualizacaoVotacaoScreen({Key? key, required this.idFormulario})
+      : super(key: key);
+
+  /// Consulta os dados do formulário de votação para obter município e estado.
+  Future<DocumentSnapshot> _getFormData() async {
+    return FirebaseFirestore.instance
+        .collection('formulariosVotacao')
+        .doc(idFormulario)
+        .get();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<DocumentSnapshot>(
+      future: _getFormData(),
+      builder: (context, snapshot) {
+        // Enquanto carrega os dados do formulário, exibe um loading.
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        // Se não encontrar os dados do formulário.
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const Scaffold(
+            body: Center(child: Text("Dados do formulário não encontrados.")),
+          );
+        }
+        // Recupera os dados do formulário (assumindo que os campos sejam 'municipio' e 'estado').
+        final formData = snapshot.data!.data() as Map<String, dynamic>;
+        final String municipio =
+            formData['municipio'] ?? 'Município não definido';
+        final String estado = formData['estado'] ?? 'Estado não definido';
+        final String localizacao = '$municipio, $estado';
+
+        return Scaffold(
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(100.0),
+            child: AppBar(
+              elevation: 2,
+              shadowColor: Colors.blue.shade100,
+              flexibleSpace: Container(
+                decoration: const BoxDecoration(color: Colors.white),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Logo centralizada
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Image.asset(
+                              'assets/logoredeplanrmbg.png',
+                              height: 50,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 20),
+                      // Título e localização (município e estado)
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Respostas - Votação',
+                            style: GoogleFonts.roboto(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          Flexible(
+                            child: Text(
+                              localizacao,
+                              style: GoogleFonts.roboto(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.blue.shade800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFE3F2FD), Color(0xFFBBDEFB)],
+              ),
+            ),
+            child: StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('respostasVotacao')
+                  .doc(idFormulario)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || !snapshot.data!.exists) {
+                  return const EmptyStateWidget(
+                    icon: Icons.assignment_ind,
+                    message: "Nenhuma resposta encontrada",
+                  );
+                }
+                final data = snapshot.data!.data() as Map<String, dynamic>;
+                final List<dynamic> respostas =
+                    data['respostas'] as List<dynamic>? ?? [];
+
+                // Calcula a contagem para cada opção de voto.
+                Map<String, int> resumoVotos = {};
+                for (var resposta in respostas) {
+                  if (resposta is Map<String, dynamic>) {
+                    final String opcao = resposta['voto']?.toString() ?? 'N/A';
+                    resumoVotos[opcao] = (resumoVotos[opcao] ?? 0) + 1;
+                  }
+                }
+
+                return ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  // +2 para incluir o header (com o resumo dos votos e o divider).
+                  itemCount: respostas.length + 2,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return FutureBuilder<int>(
+                        future: FirebaseFirestore.instance
+                            .collection('formulariosVotacao')
+                            .doc(idFormulario)
+                            .get()
+                            .then((doc) {
+                          if (doc.exists) {
+                            final data = doc.data() as Map<String, dynamic>;
+                            return data['totalVotos'] as int? ?? 0;
+                          }
+                          return 0;
+                        }),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          final int configuredTotalVotes = snapshot.data ?? 0;
+                          return VoteSummaryWidget(
+                            summary: resumoVotos,
+                            totalVotos: configuredTotalVotes,
+                          );
+                        },
+                      );
+                    } else if (index == 1) {
+                      return Row(
+                        children: [
+                          const SizedBox(height: 40),
+                          Expanded(
+                            child: Divider(
+                              thickness: 2,
+                              color: Colors.blue.shade800,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Detalhamento de votos",
+                            style: GoogleFonts.roboto(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blue.shade800,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Divider(
+                              thickness: 2,
+                              color: Colors.blue.shade800,
+                            ),
+                          ),
+                        ],
+                      );
+                    } else {
+                      final int respostaIndex = index - 2;
+                      final resposta =
+                          respostas[respostaIndex] as Map<String, dynamic>;
+                      return _RespostaCard(
+                        resposta: resposta,
+                        index: respostaIndex,
+                      );
+                    }
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

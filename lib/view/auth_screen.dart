@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../controller/auth_controller.dart';
@@ -28,6 +29,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   final TextEditingController _nivelContaController = TextEditingController();
 
   late int _selectedNivelConta = 1;
+
   final List<int> _opcoesNivel = [1, 2, 3, 4];
 
   final AuthController _authController = AuthController();
@@ -498,8 +500,116 @@ class _AdminCreateAccountScreenState extends State<AdminCreateAccountScreen> {
   final TextEditingController _cargoController = TextEditingController();
   final TextEditingController _cpfController = TextEditingController();
 
+  // Listas para os Dropdowns
+  final List<String> _estados = ["Rio de Janeiro", "Pernambuco", "Bahia"];
+  final Map<String, List<String>> _municipios = {
+    "Bahia": [
+      "Araci",
+      "Andaraí",
+      "Barra do Choça",
+      "Barra da Estiva",
+      "Botuporã",
+      "Brejões",
+      "Caatiba",
+      "Cachoeira",
+      "Cafarnaum",
+      "Canudos",
+      "Cardeal da Silva",
+      "Catu",
+      "Cícero Dantas",
+      "Cipó",
+      "Entre Rios",
+      "Coronel João Sá",
+      "Ibipeba",
+      "Ibirataia",
+      "Iaçu",
+      "Iguaí",
+      "Itagi",
+      "Muqúem de São Francisco",
+      "Itagimirim",
+      "Itanagra",
+      "Nova Itarana",
+      "Ituaçu",
+      "Iuiu",
+      "Rio Real",
+      "Jaguaquara",
+      "Maracás",
+      "Mirangaba",
+      "Muritiba",
+      "Nordestina",
+      "Potiraguá",
+      "Quixabeira",
+      "Ruy Barbosa",
+      "Retirolândia",
+      "São Domingos",
+      "Sapeaçu",
+      "Saúde",
+      "Sebastião Laranjeiras",
+      "Sento Sé",
+      "Ubatã",
+      "Várzea da Roça"
+    ],
+    "Pernambuco": [
+      "Belém do São Francisco",
+      "Agrestina",
+      "Amaraji",
+      "Betânia",
+      "Barreiros",
+      "Brejinho",
+      "Cabrobó",
+      "Calumbi",
+      "Camocim de São Félix",
+      "Carnaubeira da Penha",
+      "Canhotinho",
+      "Carnaíba",
+      "Lajedo",
+      "Cedro",
+      "Cupira",
+      "Petrolândia",
+      "Custódia",
+      "Ferreiros",
+      "Quixaba",
+      "Granito",
+      "Ipubi",
+      "São José do Belmonte",
+      "Jaqueira",
+      "Jataúba",
+      "Serrita",
+      "Joaquim Nabuco",
+      "Lagoa do Ouro",
+      "Trindade",
+      "Maraial",
+      "Mirandiba",
+      "Passira",
+      "Santa Cruz",
+      "Santa Cruz da Baixa Verde",
+      "São Bento do Una",
+      "São José do Egito",
+      "Solidão",
+      "Triunfo",
+      "Verdejante"
+    ],
+    "Rio de Janeiro": [
+      "Bom Jardim",
+      "Cardoso Moreira",
+      "Bom Jesus do Itabapoana",
+      "Casimiro de Abreu",
+      "Conceição de Macabu",
+      "Duas Barras",
+      "Engenheiro Paulo de Frontín",
+      "Itaocara",
+      "São Fidélis",
+      "São Francisco de Itabapoana",
+      "Trajano de Moraes"
+    ]
+  };
+
+  // Variáveis para armazenar as seleções
+  String? _selectedEstado;
+  String? _selectedMunicipio;
+
   int _selectedNivelConta = 2;
-  final List<int> _opcoesNivel = [0, 1, 2, 3]; // Níveis administrativos
+  final List<int> _opcoesNivel = [0, 1, 2, 3, 4]; // Níveis administrativos
   bool _passwordVisible = false;
 
   Future<void> _submit() async {
@@ -556,165 +666,273 @@ class _AdminCreateAccountScreenState extends State<AdminCreateAccountScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const primaryColor = Color.fromARGB(255, 0, 75, 136); // Nova cor primária
+    const gradientColor = LinearGradient(
+      colors: [Colors.blueAccent, Colors.blue],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Criar Conta Administrativa'),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100.0),
+        child: AppBar(
+          elevation: 2,
+          shadowColor: Colors.blue.shade100,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color(0xFF00B3CC),
+                  Color(0xFF004466),
+                ],
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Logo
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Image.asset(
+                                'assets/logoredeplanrmbg.png',
+                                height: 50,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 20),
+                        // Título
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Sistema de',
+                              style: GoogleFonts.roboto(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              'Criação de contas',
+                              style: GoogleFonts.roboto(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                                color: const Color.fromARGB(255, 230, 242, 255),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextFormField(
+              // Campo Nome
+              _buildInputField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nome Completo',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person),
-                ),
+                label: 'Nome Completo',
+                hint: 'João da Silva',
+                icon: Icons.person_outline,
+                primaryColor: primaryColor,
                 validator: (value) =>
                     value!.isEmpty ? 'Campo obrigatório' : null,
               ),
-              const SizedBox(height: 20),
-              TextFormField(
+              const SizedBox(height: 28),
+
+              // Campo Email
+              _buildInputField(
                 controller: _emailController,
+                label: 'Email',
+                hint: 'exemplo@dominio.com',
+                icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email),
-                ),
+                primaryColor: primaryColor,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira um email';
-                  }
-                  if (!value.contains('@')) {
-                    return 'Email inválido';
-                  }
+                  if (value == null || value.isEmpty)
+                    return 'Email obrigatório';
+                  if (!value.contains('@')) return 'Email inválido';
                   return null;
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 28),
+
+              // Campo Senha
               TextFormField(
                 controller: _passController,
                 obscureText: !_passwordVisible,
+                style: TextStyle(color: primaryColor),
                 decoration: InputDecoration(
                   labelText: 'Senha',
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.lock),
+                  labelStyle: TextStyle(color: primaryColor),
+                  hintText: 'Mínimo 6 caracteres',
+                  hintStyle: TextStyle(color: Colors.blueGrey[300]),
+                  border: _inputBorder(primaryColor),
+                  enabledBorder: _inputBorder(primaryColor.withOpacity(0.5)),
+                  focusedBorder: _inputBorder(primaryColor),
+                  filled: true,
+                  fillColor: Colors.blue.shade50,
+                  prefixIcon: Icon(Icons.lock_outline, color: primaryColor),
                   suffixIcon: IconButton(
-                    icon: Icon(_passwordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off),
-                    onPressed: () {
-                      setState(() {
-                        _passwordVisible = !_passwordVisible;
-                      });
-                    },
+                    icon: Icon(
+                      _passwordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: primaryColor.withOpacity(0.7),
+                    ),
+                    onPressed: () =>
+                        setState(() => _passwordVisible = !_passwordVisible),
                   ),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira uma senha';
-                  }
-                  if (value.length < 6) {
-                    return 'Senha deve ter pelo menos 6 caracteres';
-                  }
+                  if (value == null || value.isEmpty)
+                    return 'Senha obrigatória';
+                  if (value.length < 6) return 'Mínimo 6 caracteres';
                   return null;
                 },
               ),
-              const SizedBox(height: 20),
-              TextFormField(
-                controller: _municipioController,
-                decoration: const InputDecoration(
-                  labelText: 'Município',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.location_city),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Campo obrigatório' : null,
+              const SizedBox(height: 28),
+
+              // Dropdown Estado
+              _buildDropdown(
+                value: _selectedEstado,
+                label: 'Estado',
+                icon: Icons.place_outlined,
+                items: _estados,
+                onChanged: (value) => setState(() {
+                  _selectedEstado = value;
+                  _selectedMunicipio = null;
+                }),
+                primaryColor: primaryColor,
               ),
-              const SizedBox(height: 20),
-              TextFormField(
-                controller: _estadoController,
-                decoration: const InputDecoration(
-                  labelText: 'Estado',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.location_city_rounded),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Campo obrigatório' : null,
+              const SizedBox(height: 28),
+
+              // Dropdown Município
+              _buildDropdown(
+                value: _selectedMunicipio,
+                label: 'Município',
+                icon: Icons.location_city_outlined,
+                items: _selectedEstado == null
+                    ? []
+                    : _municipios[_selectedEstado]!,
+                onChanged: (value) =>
+                    setState(() => _selectedMunicipio = value),
+                primaryColor: primaryColor,
               ),
-              const SizedBox(height: 20),
-              TextFormField(
+              const SizedBox(height: 28),
+
+              // Campo Cargo
+              _buildInputField(
                 controller: _cargoController,
-                decoration: const InputDecoration(
-                  labelText: 'Cargo',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.work),
-                ),
+                label: 'Cargo',
+                hint: 'Gerente Regional',
+                icon: Icons.work_outline,
+                primaryColor: primaryColor,
                 validator: (value) =>
                     value!.isEmpty ? 'Campo obrigatório' : null,
               ),
-              const SizedBox(height: 20),
-              TextFormField(
+              const SizedBox(height: 28),
+
+              // Campo CPF
+              _buildInputField(
                 controller: _cpfController,
-                decoration: const InputDecoration(
-                  labelText: 'CPF',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.credit_card),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Campo obrigatório';
-                  }
-                  // Adicione validação de CPF aqui se necessário
-                  return null;
-                },
+                label: 'CPF',
+                hint: '000.000.000-00',
+                icon: Icons.badge_outlined,
+                primaryColor: primaryColor,
+                validator: (value) =>
+                    value!.isEmpty ? 'Campo obrigatório' : null,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 28),
+
+              // Campo Telefone
               IntlPhoneField(
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Telefone',
-                  border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: primaryColor),
+                  border: _inputBorder(primaryColor),
+                  enabledBorder: _inputBorder(primaryColor.withOpacity(0.5)),
+                  focusedBorder: _inputBorder(primaryColor),
+                  filled: true,
+                  fillColor: Colors.blue.shade50,
                 ),
                 initialCountryCode: 'BR',
-                onChanged: (phone) {
-                  _telController.text = phone.completeNumber;
-                },
-                validator: (value) =>
-                    value == null ? 'Campo obrigatório' : null,
+                style: TextStyle(color: primaryColor),
+                dropdownIcon: Icon(Icons.arrow_drop_down, color: primaryColor),
+                onChanged: (phone) =>
+                    _telController.text = phone.completeNumber,
               ),
-              const SizedBox(height: 20),
-              DropdownButtonFormField<int>(
+              const SizedBox(height: 28),
+
+              // Dropdown Nível Acesso
+              _buildDropdown<int>(
                 value: _selectedNivelConta,
-                decoration: const InputDecoration(
-                  labelText: 'Nível de Acesso',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.security),
-                ),
-                items: _opcoesNivel
-                    .map((level) => DropdownMenuItem(
-                          value: level,
-                          child:
-                              Text('Nível $level ${_getNivelDescricao(level)}'),
-                        ))
-                    .toList(),
+                label: 'Nível de Acesso',
+                icon: Icons.admin_panel_settings_outlined,
+                items: _opcoesNivel,
                 onChanged: (value) =>
                     setState(() => _selectedNivelConta = value!),
-                validator: (value) =>
-                    value == null ? 'Selecione um nível' : null,
+                primaryColor: primaryColor,
+                displayItem: (value) => _getNivelDescricao(value),
               ),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: Colors.deepPurple,
-                  foregroundColor: Colors.white,
+              const SizedBox(height: 36),
+
+              // Botão de Submissão
+              Container(
+                decoration: BoxDecoration(
+                  gradient: gradientColor,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color.fromARGB(255, 3, 61, 108)
+                          .withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
+                    )
+                  ],
                 ),
-                onPressed: _submit,
-                child: const Text('Criar Conta Administrativa'),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    backgroundColor: const Color.fromARGB(251, 70, 103, 222),
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: _submit,
+                  child: const Text('CRIAR CONTA ADMINISTRATIVA',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                          color: Colors.white)),
+                ),
               ),
             ],
           ),
@@ -723,16 +941,93 @@ class _AdminCreateAccountScreenState extends State<AdminCreateAccountScreen> {
     );
   }
 
+// Métodos auxiliares para reutilização
+  InputBorder _inputBorder(Color color) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: BorderSide(color: color, width: 1.5),
+    );
+  }
+
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required Color primaryColor,
+    String? hint,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      style: TextStyle(color: primaryColor),
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: primaryColor),
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.blueGrey[300]),
+        border: _inputBorder(primaryColor),
+        enabledBorder: _inputBorder(primaryColor.withOpacity(0.5)),
+        focusedBorder: _inputBorder(primaryColor),
+        filled: true,
+        fillColor: Colors.blue.shade50,
+        prefixIcon: Icon(icon, color: primaryColor),
+      ),
+      validator: validator,
+    );
+  }
+
+  Widget _buildDropdown<T>({
+    required T? value,
+    required String label,
+    required IconData icon,
+    required List<T> items,
+    required Function(T?) onChanged,
+    required Color primaryColor,
+    String Function(T)? displayItem,
+  }) {
+    return DropdownButtonFormField<T>(
+      value: value,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: primaryColor),
+        border: _inputBorder(primaryColor),
+        enabledBorder: _inputBorder(primaryColor.withOpacity(0.5)),
+        focusedBorder: _inputBorder(primaryColor),
+        filled: true,
+        fillColor: Colors.blue.shade50,
+        prefixIcon: Icon(icon, color: primaryColor),
+      ),
+      dropdownColor: Colors.blue.shade50,
+      icon: Icon(Icons.arrow_drop_down_circle_outlined, color: primaryColor),
+      style: TextStyle(color: primaryColor),
+      items: items.map((item) {
+        return DropdownMenuItem<T>(
+          value: item,
+          child: Text(
+            displayItem != null ? displayItem(item) : item.toString(),
+            style: TextStyle(fontSize: 15),
+          ),
+        );
+      }).toList(),
+      onChanged: onChanged,
+      validator: (value) => value == null ? 'Campo obrigatório' : null,
+    );
+  }
+
   String _getNivelDescricao(int nivel) {
     switch (nivel) {
       case 0:
-        return '(Visualizador Administrativo)';
+        return 'Visualizador Administrativo';
       case 1:
-        return '(Adminstrador Plansanear)';
+        return 'Adminstrador Plansanear';
       case 2:
-        return '(Gestor 1)';
+        return 'Gestor 1';
       case 3:
-        return '(Gestor 2)';
+        return 'Gestor 2';
+      case 4:
+        return 'Gestor 3';
       default:
         return '';
     }

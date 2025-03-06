@@ -5,6 +5,7 @@ import 'package:Redeplansanea/formularios/presencacomite/lista_presenca_comite.d
 import 'package:Redeplansanea/formularios/satisfacao/lista_presenca_satisfacao.dart';
 import 'package:Redeplansanea/formularios/votacao/lista_votacao.dart';
 import 'package:Redeplansanea/formularios/votacao/respondido_tela_votacao.dart';
+import 'package:Redeplansanea/formularios/votacao/todas_votacoes.dart';
 import 'package:Redeplansanea/main.dart';
 
 import 'package:Redeplansanea/produtos/produto_a/produto_a.dart';
@@ -120,6 +121,20 @@ final GoRouter router = GoRouter(
           idFormulario: state.pathParameters['idFormulario']!,
         ),
       ),
+    ),
+    GoRoute(
+      path: '/validacao/formulario_presenca/:uuid',
+      builder: (context, state) {
+        final uuid = state.pathParameters['uuid']!;
+        return VisualizacaoRespostaPage(uuid: uuid);
+      },
+    ),
+    GoRoute(
+      path: '/validacao/votacao/:uid',
+      builder: (context, state) {
+        final uid = state.pathParameters['uid']!;
+        return VisualizacaoVotacaoScreen(idFormulario: uid);
+      },
     ),
   ],
 );

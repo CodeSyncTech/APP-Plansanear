@@ -3,6 +3,7 @@ import 'package:Redeplansanea/produtos/produto_a/produto_a.dart';
 import 'package:Redeplansanea/produtos/produto_a/views/formacao_comite_form.dart';
 import 'package:Redeplansanea/produtos/produto_b/info_caracterizacao/caracteriza%C3%A7%C3%A3o_municipio.dart';
 import 'package:Redeplansanea/produtos/produto_b/produto_b.dart';
+import 'package:Redeplansanea/produtos/produto_c/produto_c.dart';
 import 'package:Redeplansanea/router.dart';
 import 'package:Redeplansanea/view/home.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -263,12 +264,27 @@ class _ProdutosState extends State<Produtos> {
             ),
 
           // Produto C: Apenas como exemplo, sem navegação específica
-          buildDisabledAnimatedCard(
-            context,
-            title: 'Produto C',
-            subtitle: 'Diagnóstico Técnico-Participativo',
-            imagePath: 'assets/capaProdutos/produtoC.png',
-          ),
+          if ((userData?['nivelConta'] ?? 2) > 3 ||
+              (userData?['nivelConta'] ?? 2) == 1)
+            buildAnimatedCard(
+              context,
+              title: 'Produto C',
+              subtitle: 'Diagnóstico Técnico-Participativo',
+              imagePath: 'assets/capaProdutos/produtoC.png',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProdutoC_menu()),
+                );
+              },
+            )
+          else
+            buildDisabledAnimatedCard(
+              context,
+              title: 'Produto C',
+              subtitle: 'Diagnóstico Técnico-Participativo',
+              imagePath: 'assets/capaProdutos/produtoC.png',
+            ),
           buildDisabledAnimatedCard(
             context,
             title: 'Produto D',
@@ -526,6 +542,6 @@ Widget buildAnimatedCard(
         // Adiciona animação ao card
         .animate()
         .fadeIn(duration: 700.ms)
-        .slideX(curve: Curves.easeOut),
+        .slideX(curve: Curves.decelerate),
   );
 }
