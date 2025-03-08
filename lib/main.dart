@@ -1,7 +1,5 @@
 import 'package:Redeplansanea/formularios/presenca/forms_page.dart';
 import 'package:Redeplansanea/produtos/produto_a/produto_a.dart';
-import 'package:Redeplansanea/produtos/produto_a/views/formacao_comite_form.dart';
-import 'package:Redeplansanea/produtos/produto_b/info_caracterizacao/caracteriza%C3%A7%C3%A3o_municipio.dart';
 import 'package:Redeplansanea/produtos/produto_b/produto_b.dart';
 import 'package:Redeplansanea/produtos/produto_c/produto_c.dart';
 import 'package:Redeplansanea/router.dart';
@@ -11,7 +9,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:go_router/go_router.dart';
 import 'package:toastification/toastification.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -242,7 +239,7 @@ class _ProdutosState extends State<Produtos> {
           ),
 
           if ((userData?['nivelConta'] ?? 2) > 2 ||
-              (userData?['nivelConta'] ?? 2) == 1)
+              (userData?['nivelConta'] ?? 2) <= 1)
             buildAnimatedCard(
               context,
               title: 'Produto B',
@@ -265,7 +262,7 @@ class _ProdutosState extends State<Produtos> {
 
           // Produto C: Apenas como exemplo, sem navegação específica
           if ((userData?['nivelConta'] ?? 2) > 3 ||
-              (userData?['nivelConta'] ?? 2) == 1)
+              (userData?['nivelConta'] ?? 2) <= 1)
             buildAnimatedCard(
               context,
               title: 'Produto C',

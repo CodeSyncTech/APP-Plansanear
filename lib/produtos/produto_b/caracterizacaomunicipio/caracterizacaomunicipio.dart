@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class Tela3 extends StatefulWidget {
   const Tela3({Key? key}) : super(key: key);
@@ -136,17 +137,70 @@ class _Tela3State extends State<Tela3> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Tela 3 – Produto B",
-            style: TextStyle(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100.0),
+        child: AppBar(
+          elevation: 2,
+          shadowColor: Colors.blue.shade100,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
               color: Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 18,
-            )),
-        centerTitle: true,
-        backgroundColor: Colors.blue[800],
-        elevation: 5,
-        iconTheme: const IconThemeData(color: Colors.white),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.center, // Centralização principal
+                children: [
+                  // Logo centralizado
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Image.asset(
+                          'assets/logoredeplanrmbg.png',
+                          height: 50,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(width: 20),
+
+                  // Título centralizado verticalmente
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Caracterização do',
+                        style: GoogleFonts.roboto(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      Text(
+                        'Município',
+                        style: GoogleFonts.roboto(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.blue.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
       body: Container(
         decoration: BoxDecoration(

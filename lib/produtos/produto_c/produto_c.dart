@@ -112,7 +112,7 @@ class _ProdutoC_menuState extends State<ProdutoC_menu> {
                                 ),
                               ),
                               Text(
-                                'Produto A',
+                                'Produto C',
                                 style: GoogleFonts.roboto(
                                   fontSize: 24,
                                   fontWeight: FontWeight.w600,
@@ -234,11 +234,11 @@ class _ProdutoC_menuState extends State<ProdutoC_menu> {
               children: [
                 buildAnimatedCard(
                   context,
-                  title: 'Estrutura Pública Municipal',
-                  subtitle: 'Informações para a caracterização do município',
-                  imagePath: 'assets/icon_estruturapublica.png',
+                  title: 'LEITURA TERRITORIAL',
+                  subtitle: 'resumo LEITURA TERRITORIAL',
+                  imagePath: 'assets/produtoC/territorial/leituraterri.png',
                   onTap: () {
-                    Navigator.of(context).push(
+                    /*  Navigator.of(context).push(
                       PageRouteBuilder(
                         pageBuilder: (context, animation, secondaryAnimation) =>
                             Tela1(),
@@ -254,17 +254,16 @@ class _ProdutoC_menuState extends State<ProdutoC_menu> {
                           );
                         },
                       ),
-                    );
+                    );*/
                   },
                 ),
                 buildAnimatedCard(
                   context,
-                  title: 'Programas, Campanhas e Ações',
-                  subtitle:
-                      'Programas, campanhas e ações na política de saúde e assistência social',
-                  imagePath: 'assets/icon_programasecampanha.png',
+                  title: 'ABASTECIMENTO DE ÁGUA',
+                  subtitle: 'resumo ABASTECIMENTO DE ÁGUA',
+                  imagePath: 'assets/produtoC/agua/agua.png',
                   onTap: () {
-                    Navigator.of(context).push(
+                    /*  Navigator.of(context).push(
                       PageRouteBuilder(
                         pageBuilder: (context, animation, secondaryAnimation) =>
                             Tela2(),
@@ -280,17 +279,16 @@ class _ProdutoC_menuState extends State<ProdutoC_menu> {
                           );
                         },
                       ),
-                    );
+                    );  */
                   },
                 ),
                 buildAnimatedCard(
                   context,
-                  title: 'Caracterização do Município',
-                  subtitle:
-                      'Politica de Saneamento, conselho municipal e Plano Diretor',
-                  imagePath: 'assets/icon_caracterizacaomunicipio.png',
+                  title: 'DRENAGEM DE ÁGUAS PLUVIAIS',
+                  subtitle: 'resumo DRENAGEM DE ÁGUAS PLUVIAIS',
+                  imagePath: 'assets/produtoC/drenagem/drenagem.png',
                   onTap: () {
-                    Navigator.of(context).push(
+                    /* Navigator.of(context).push(
                       PageRouteBuilder(
                         pageBuilder: (context, animation, secondaryAnimation) =>
                             Tela3(),
@@ -306,16 +304,16 @@ class _ProdutoC_menuState extends State<ProdutoC_menu> {
                           );
                         },
                       ),
-                    );
+                    );  */
                   },
                 ),
                 buildAnimatedCard(
                   context,
-                  title: 'Populações Tradicionais',
-                  subtitle: '',
-                  imagePath: 'assets/ico_povostradicionais.png',
+                  title: 'SISTEMA DE ESGOTAMENTO SANITÁRIO',
+                  subtitle: 'resumo SISTEMA DE ESGOTAMENTO SANITÁRIO',
+                  imagePath: 'assets/produtoC/esgoto/esgoto.png',
                   onTap: () {
-                    Navigator.of(context).push(
+                    /*  Navigator.of(context).push(
                       PageRouteBuilder(
                         pageBuilder: (context, animation, secondaryAnimation) =>
                             Tela4(),
@@ -331,7 +329,7 @@ class _ProdutoC_menuState extends State<ProdutoC_menu> {
                           );
                         },
                       ),
-                    );
+                    );  */
                   },
                 ),
               ],

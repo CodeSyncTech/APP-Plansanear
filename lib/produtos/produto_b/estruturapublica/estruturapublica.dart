@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class Tela1 extends StatefulWidget {
   const Tela1({Key? key}) : super(key: key);
@@ -172,33 +173,73 @@ class _Tela1State extends State<Tela1> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: Text("Tela 1 – Estrutura e Saneamento",
-            style: TextStyle(
-                color: Colors.blue[900],
-                fontWeight: FontWeight.bold,
-                fontSize: 20)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.blue.shade50, Colors.white],
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100.0),
+        child: AppBar(
+          elevation: 2,
+          shadowColor: Colors.blue.shade100,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 10,
-                offset: Offset(0, 2),
-              )
-            ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.center, // Centralização principal
+                children: [
+                  // Logo centralizado
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Image.asset(
+                          'assets/logoredeplanrmbg.png',
+                          height: 50,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(width: 20),
+
+                  // Título centralizado verticalmente
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Estrutura e',
+                        style: GoogleFonts.roboto(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      Text(
+                        'Saneamento',
+                        style: GoogleFonts.roboto(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.blue.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
-        iconTheme: IconThemeData(color: Colors.blue[900]),
       ),
       body: Container(
+        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,

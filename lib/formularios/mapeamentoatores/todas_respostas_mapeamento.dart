@@ -479,7 +479,7 @@ class RespostasScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Respostas - Comitê',
+                        'Respostas',
                         style: GoogleFonts.roboto(
                           fontSize: 18,
                           fontWeight: FontWeight.w400,

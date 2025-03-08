@@ -3,6 +3,10 @@ import 'package:Redeplansanea/view/painelAdmin/ProdutoA/padmin_formacaocomite.da
 import 'package:Redeplansanea/view/painelAdmin/ProdutoA/padmin_infomunicipio.dart';
 import 'package:Redeplansanea/view/painelAdmin/ProdutoA/padmin_organizacaosocial.dart';
 import 'package:Redeplansanea/view/painelAdmin/ProdutoA/padmin_setores.dart';
+import 'package:Redeplansanea/view/painelAdmin/ProdutoB/padmin_caracterizacaomunicipio.dart';
+import 'package:Redeplansanea/view/painelAdmin/ProdutoB/padmin_estruturapubmunicipal.dart';
+import 'package:Redeplansanea/view/painelAdmin/ProdutoB/padmin_populacoestradicionais.dart';
+import 'package:Redeplansanea/view/painelAdmin/ProdutoB/padmin_programacampanhaeacoes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -637,7 +641,7 @@ class _UserListItem extends StatelessWidget {
                   childrenPadding: const EdgeInsets.only(left: 32.0),
                   children: [
                     ListTile(
-                      leading: Icon(Icons.group, color: Colors.blue[800]),
+                      leading: Icon(Icons.group_add, color: Colors.blue[800]),
                       title: const Text('Formação Comitê'),
                       onTap: () {
                         Navigator.pop(context);
@@ -652,7 +656,7 @@ class _UserListItem extends StatelessWidget {
                     ),
                     ListTile(
                       leading:
-                          Icon(Icons.info_outline, color: Colors.green[800]),
+                          Icon(Icons.location_city, color: Colors.blue[800]),
                       title: const Text('Informações sobre o Município'),
                       onTap: () {
                         Navigator.pop(context);
@@ -666,8 +670,7 @@ class _UserListItem extends StatelessWidget {
                       },
                     ),
                     ListTile(
-                      leading:
-                          Icon(Icons.social_distance, color: Colors.blue[800]),
+                      leading: Icon(Icons.group_work, color: Colors.blue[800]),
                       title: const Text('Organização Social'),
                       onTap: () {
                         Navigator.pop(context);
@@ -682,8 +685,7 @@ class _UserListItem extends StatelessWidget {
                       },
                     ),
                     ListTile(
-                      leading:
-                          Icon(Icons.folder_special, color: Colors.blue[800]),
+                      leading: Icon(Icons.view_module, color: Colors.blue[800]),
                       title: const Text('Setores'),
                       onTap: () {
                         Navigator.pop(context);
@@ -695,7 +697,7 @@ class _UserListItem extends StatelessWidget {
                           ),
                         );
                       },
-                    )
+                    ),
                   ],
                 ),
                 // Produto B com opções agrupadas
@@ -705,20 +707,64 @@ class _UserListItem extends StatelessWidget {
                   childrenPadding: const EdgeInsets.only(left: 32.0),
                   children: [
                     ListTile(
-                      leading: Icon(Icons.group, color: Colors.blue[800]),
-                      title: const Text('Opção X'),
+                      leading:
+                          Icon(Icons.account_balance, color: Colors.blue[800]),
+                      title: const Text('Estrutura Pública Municipal'),
                       onTap: () {
                         Navigator.pop(context);
-                        // Adicione aqui a navegação para a tela de Opção X do Produto B
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                VisualizacaoEstruturapubMunicipal(
+                                    userId: docId),
+                          ),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.campaign, color: Colors.blue[800]),
+                      title: const Text('Programas, Campanhas e Ações'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                VisualizacaoProgramaCampanha(userId: docId),
+                          ),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.map, color: Colors.blue[800]),
+                      title: const Text('Caracterização do Município'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                VisualizacaoCaracterizacaoMunicipio(
+                                    userId: docId),
+                          ),
+                        );
                       },
                     ),
                     ListTile(
                       leading:
-                          Icon(Icons.info_outline, color: Colors.green[800]),
-                      title: const Text('Opção Y'),
+                          Icon(Icons.nature_people, color: Colors.blue[800]),
+                      title: const Text('Populações Tradicionais'),
                       onTap: () {
                         Navigator.pop(context);
-                        // Adicione aqui a navegação para a tela de Opção Y do Produto B
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                VisualizacaoPopulacoesTradicionais(
+                                    userId: docId),
+                          ),
+                        );
                       },
                     ),
                   ],

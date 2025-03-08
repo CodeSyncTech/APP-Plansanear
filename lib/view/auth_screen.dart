@@ -113,7 +113,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   }
 
   final String numeroWhatsapp =
-      "https://wa.me/5587998114541"; // Substitua com o número correto
+      "https://wa.me/5587981385942"; // Substitua com o número correto
 
   Future<void> _abrirWhatsapp() async {
     if (await canLaunchUrl(Uri.parse(numeroWhatsapp))) {
@@ -566,6 +566,7 @@ class _AdminCreateAccountScreenState extends State<AdminCreateAccountScreen> {
       "Cedro",
       "Cupira",
       "Petrolândia",
+      "Petrolina",
       "Custódia",
       "Ferreiros",
       "Quixaba",
@@ -622,12 +623,11 @@ class _AdminCreateAccountScreenState extends State<AdminCreateAccountScreen> {
         email: _emailController.text.trim(),
         tel: _telController.text.trim(),
         password: _passController.text,
-        municipio: _municipioController.text.trim(),
-        estado: _estadoController.text.trim(),
+        municipio: _selectedMunicipio ?? '',
+        estado: _selectedEstado ?? '',
         cargo: _cargoController.text.trim(),
         cpf: _cpfController.text.trim(),
         nivelConta: _selectedNivelConta,
-        // Removido currentUser por não ser necessário no cadastro
       );
 
       ScaffoldMessenger.of(context).showSnackBar(

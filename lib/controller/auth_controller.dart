@@ -1,16 +1,21 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../model/auth_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Classe responsável pelas operações de autenticação
 class AuthController {
-  final AuthModel _authModel = AuthModel();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  /// Método de login
   Future<UserCredential> handleSignIn(String email, String password) async {
-    return await _authModel.signIn(email, password);
+    return await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
   }
 
+  /// Método de cadastro utilizando instância secundária do Firebase
   Future<UserCredential> handleSignUp({
     required String name,
     required String email,
@@ -21,30 +26,14 @@ class AuthController {
     required String cargo,
     required String cpf,
     required int nivelConta,
-    User? currentUser, // Usuário atual tentando criar a conta
+    User? currentUser,
   }) async {
     try {
-      // Verificar se o usuário atual tem permissão para criar este nível de conta
-      if (nivelConta <= 3) {
-        // Supondo que níveis 1-3 são administrativos
-        final User? user = currentUser ?? _auth.currentUser;
-        if (user == null) throw Exception('Usuário não autenticado');
+      // Cria o usuário sem afetar a sessão atual
+      UserCredential credential =
+          await _createUserWithoutAffectingSession(email, password);
 
-        final userDoc =
-            await _firestore.collection('users').doc(user.uid).get();
-        final currentUserLevel = userDoc.data()?['nivelConta'] as int? ?? 4;
-        if (currentUserLevel == 0) {
-          throw Exception('Conta nível 0 não pode criar conta nível 1');
-        } else if (currentUserLevel != 1) {
-          throw Exception('Permissão insuficiente para criar esta conta');
-        }
-      }
-
-      UserCredential credential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
+      // Adiciona os dados do usuário no Firestore
       await _firestore.collection('users').doc(credential.user!.uid).set({
         'name': name,
         'email': email,
@@ -63,7 +52,31 @@ class AuthController {
     }
   }
 
+  /// Cria um usuário usando uma instância secundária do Firebase
+  Future<UserCredential> _createUserWithoutAffectingSession(
+      String email, String password) async {
+    // Inicializa uma instância secundária com um nome diferente
+    final secondaryApp = await Firebase.initializeApp(
+      name: 'SecondaryApp',
+      options: Firebase.app().options,
+    );
+    // Obtém a instância de autenticação associada à instância secundária
+    final secondaryAuth = FirebaseAuth.instanceFor(app: secondaryApp);
+
+    // Cria o usuário na instância secundária
+    UserCredential credential =
+        await secondaryAuth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    // Finaliza a instância secundária, se não for mais necessária
+    await secondaryApp.delete();
+    return credential;
+  }
+
+  /// Método para realizar logout
   Future<void> handleSignOut() async {
-    await _authModel.signOut();
+    await _auth.signOut();
   }
 }
