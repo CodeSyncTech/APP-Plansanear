@@ -18,6 +18,7 @@ class _VisualizacaoEstruturapubMunicipalState
   String? _leiMunicipal;
   List<Map<String, dynamic>> _programasSaneamento = [];
   bool _isLoading = true;
+  bool _hasData = false; // Indica se há algum dado para exibir
 
   @override
   void initState() {
@@ -36,23 +37,25 @@ class _VisualizacaoEstruturapubMunicipalState
       if (doc.exists) {
         final data = doc.data();
         if (data != null) {
-          if (data.containsKey('estruturaPublicaMunicipal')) {
-            final esp = data['estruturaPublicaMunicipal'];
-            setState(() {
-              _qtdVereadores = esp['qtdVereadores'] as String?;
-              _leiMunicipal = esp['leiMunicipal'] as String?;
-            });
+          bool hasEstrutura = data.containsKey('estruturaPublicaMunicipal');
+          bool hasProgramas = data.containsKey('programasAcoesSaneamento');
+          // Define _hasData se houver alguma informação
+          if (hasEstrutura || hasProgramas) {
+            _hasData = true;
           }
-          if (data.containsKey('programasAcoesSaneamento')) {
+          if (hasEstrutura) {
+            final esp = data['estruturaPublicaMunicipal'];
+            _qtdVereadores = esp['qtdVereadores'] as String?;
+            _leiMunicipal = esp['leiMunicipal'] as String?;
+          }
+          if (hasProgramas) {
             final List<dynamic> programas = data['programasAcoesSaneamento'];
-            setState(() {
-              _programasSaneamento = programas.map((item) {
-                return {
-                  "programa": item['programa'] ?? "",
-                  "secretaria": item['secretaria'] ?? "",
-                };
-              }).toList();
-            });
+            _programasSaneamento = programas.map((item) {
+              return {
+                "programa": item['programa'] ?? "",
+                "secretaria": item['secretaria'] ?? "",
+              };
+            }).toList();
           }
         }
       }
@@ -63,6 +66,23 @@ class _VisualizacaoEstruturapubMunicipalState
         _isLoading = false;
       });
     }
+  }
+
+  /// Widget que exibe a mensagem de estado vazio quando não há registros.
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.info_outline, color: Colors.blueAccent, size: 48),
+          const SizedBox(height: 16),
+          const Text(
+            "Nenhuma informação disponível",
+            style: TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildCamaraMunicipalCard() {
@@ -193,21 +213,19 @@ class _VisualizacaoEstruturapubMunicipalState
         ),
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
-            : Container(
-                height: double.infinity,
-                width: double.infinity,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildCamaraMunicipalCard(),
-                      const SizedBox(height: 25),
-                      _buildProgramasMunicipaisCard(),
-                    ],
-                  ),
-                ),
-              ),
+            : _hasData
+                ? SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildCamaraMunicipalCard(),
+                        const SizedBox(height: 25),
+                        _buildProgramasMunicipaisCard(),
+                      ],
+                    ),
+                  )
+                : _buildEmptyState(),
       ),
     );
   }

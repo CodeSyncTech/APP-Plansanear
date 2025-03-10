@@ -19,6 +19,7 @@ class _VisualizacaoPopulacoesTradicionaisState
   bool? _possuiPoliticasTrad;
   String? _politicasEspecificasText;
   bool _isLoading = true;
+  bool _hasData = false; // Define se há dados relevantes para exibir
 
   @override
   void initState() {
@@ -38,17 +39,30 @@ class _VisualizacaoPopulacoesTradicionaisState
         final data = doc.data();
         if (data != null && data.containsKey('populacoesTradicionais')) {
           final popTrad = data['populacoesTradicionais'];
-          setState(() {
-            _existePopulacoesTrad = popTrad['existe'];
-            _populacoesTrad = (popTrad['lista'] as List<dynamic>).map((item) {
-              return {
-                "tipo": item['tipo'] ?? "",
-                "setor": item['setor'] ?? "",
-              };
-            }).toList();
-            _possuiPoliticasTrad = popTrad['possuiPoliticasTrad'];
-            _politicasEspecificasText = popTrad['politicasEspecificas'] ?? "";
-          });
+          // Recupera os valores dos campos e define se há dados relevantes
+          bool existe = popTrad['existe'] ?? false;
+          List<dynamic> lista = popTrad['lista'] ?? [];
+          bool possuiPoliticasTrad = popTrad['possuiPoliticasTrad'] ?? false;
+          String politicasEspecificas = popTrad['politicasEspecificas'] ?? "";
+          bool dataAvailable = (existe == true) ||
+              (lista.isNotEmpty) ||
+              (possuiPoliticasTrad == true) ||
+              (politicasEspecificas.isNotEmpty);
+
+          if (dataAvailable) {
+            setState(() {
+              _hasData = true;
+              _existePopulacoesTrad = existe;
+              _populacoesTrad = lista.map((item) {
+                return {
+                  "tipo": item['tipo'] ?? "",
+                  "setor": item['setor'] ?? "",
+                };
+              }).toList();
+              _possuiPoliticasTrad = possuiPoliticasTrad;
+              _politicasEspecificasText = politicasEspecificas;
+            });
+          }
         }
       }
     } catch (e) {
@@ -60,7 +74,24 @@ class _VisualizacaoPopulacoesTradicionaisState
     }
   }
 
-  /// Exibe a resposta (Sim/Não) de forma somente leitura
+  /// Widget que exibe a mensagem de estado vazio quando não há registros.
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.info_outline, color: Colors.blueAccent, size: 48),
+          const SizedBox(height: 16),
+          const Text(
+            "Nenhuma informação disponível",
+            style: TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Exibe a resposta (Sim/Não) de forma somente leitura.
   Widget _buildReadOnlyYesNo(String label, bool? value) {
     String resposta;
     if (value == null) {
@@ -102,7 +133,7 @@ class _VisualizacaoPopulacoesTradicionaisState
     );
   }
 
-  /// Exibe os registros de populações tradicionais cadastradas
+  /// Exibe os registros de populações tradicionais cadastradas.
   Widget _buildPopulacoesTradCard() {
     return Card(
       elevation: 2,
@@ -174,7 +205,7 @@ class _VisualizacaoPopulacoesTradicionaisState
     );
   }
 
-  /// Exibe as políticas específicas para povos tradicionais, se houver
+  /// Exibe as políticas específicas para povos tradicionais, se houver.
   Widget _buildPoliticasTradCard() {
     return Card(
       elevation: 2,
@@ -237,31 +268,33 @@ class _VisualizacaoPopulacoesTradicionaisState
         ),
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
-            : Padding(
-                padding: const EdgeInsets.all(16),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildReadOnlyYesNo(
-                        "Existem populações tradicionais no Município?",
-                        _existePopulacoesTrad,
+            : _hasData
+                ? Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildReadOnlyYesNo(
+                            "Existem populações tradicionais no Município?",
+                            _existePopulacoesTrad,
+                          ),
+                          const SizedBox(height: 20),
+                          _buildPopulacoesTradCard(),
+                          const SizedBox(height: 20),
+                          _buildReadOnlyYesNo(
+                            "O Município possui políticas específicas para povos tradicionais?",
+                            _possuiPoliticasTrad,
+                          ),
+                          if (_possuiPoliticasTrad == true) ...[
+                            const SizedBox(height: 20),
+                            _buildPoliticasTradCard(),
+                          ],
+                        ],
                       ),
-                      const SizedBox(height: 20),
-                      _buildPopulacoesTradCard(),
-                      const SizedBox(height: 20),
-                      _buildReadOnlyYesNo(
-                        "O Município possui políticas específicas para povos tradicionais?",
-                        _possuiPoliticasTrad,
-                      ),
-                      if (_possuiPoliticasTrad == true) ...[
-                        const SizedBox(height: 20),
-                        _buildPoliticasTradCard(),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
+                    ),
+                  )
+                : _buildEmptyState(),
       ),
     );
   }

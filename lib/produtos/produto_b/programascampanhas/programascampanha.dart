@@ -287,8 +287,10 @@ class _Tela2State extends State<Tela2> {
         final item = list[index];
         String dataInfo = "Sem data definida";
         if (item['dataInicio'] != null && item['dataFim'] != null) {
-          final start = DateFormat('dd/MM/yyyy').format(item['dataInicio']);
-          final end = DateFormat('dd/MM/yyyy').format(item['dataFim']);
+          final start =
+              DateFormat('dd/MM/yyyy', 'pt_BR').format(item['dataInicio']);
+
+          final end = DateFormat('dd/MM/yyyy', 'pt_BR').format(item['dataFim']);
           dataInfo = start == end ? start : "Início: $start | Fim: $end";
         }
         return ListTile(

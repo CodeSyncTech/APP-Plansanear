@@ -1,0 +1,2 @@
+C:/Users/toim6/OneDrive/Documentos/plansanearforms/android/app/.cxx/Debug/872253d3/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/toim6/OneDrive/Documentos/plansanearforms/android/app/.cxx/Debug/872253d3/arm64-v8a/CMakeFiles/rebuild_cache.dir

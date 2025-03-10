@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class VisualizacaoCaracterizacaoMunicipio extends StatefulWidget {
   final String userId; // UUID do usuário passado via parâmetro
@@ -28,6 +29,9 @@ class _VisualizacaoCaracterizacaoMunicipioState
   String? _planoDiretorFileURL;
 
   bool _isLoading = true;
+  bool _hasData = false; // Indica se há dados para exibir
+
+  final Color _accentColor = Colors.blueAccent; // Cor de destaque para o ícone
 
   @override
   void initState() {
@@ -48,6 +52,7 @@ class _VisualizacaoCaracterizacaoMunicipioState
         if (data != null && data.containsKey('produtoB')) {
           final produtoB = data['produtoB'];
           setState(() {
+            _hasData = true;
             _possuiPoliticaSaneamento = produtoB['politicaSaneamento'];
             _haConselhoSaneamento = produtoB['conselhoSaneamento'];
             _possuiPlanoDiretor = produtoB['planoDiretor'];
@@ -71,6 +76,23 @@ class _VisualizacaoCaracterizacaoMunicipioState
         _isLoading = false;
       });
     }
+  }
+
+  /// Widget que exibe a mensagem de estado vazio quando não há registros.
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.info_outline, color: _accentColor, size: 48),
+          const SizedBox(height: 16),
+          Text(
+            "Nenhuma informação disponível",
+            style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey[600]),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Widget para exibir informação de resposta (Sim/Não) de forma somente leitura.
@@ -216,54 +238,56 @@ class _VisualizacaoCaracterizacaoMunicipioState
             ? const Center(child: CircularProgressIndicator())
             : Padding(
                 padding: const EdgeInsets.all(16),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 16),
-                        child: Text(
-                          "Informações – Produto B",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.blueGrey,
-                            letterSpacing: 0.5,
-                          ),
+                child: _hasData
+                    ? SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.only(bottom: 16),
+                              child: Text(
+                                "Informações – Produto B",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.blueGrey,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                            // Exibe se o município possui Política de Saneamento
+                            _buildReadOnlyYesNo(
+                              "O Município possui Política de Saneamento?",
+                              _possuiPoliticaSaneamento,
+                            ),
+                            // Se possui, exibe o documento para download
+                            if (_possuiPoliticaSaneamento == true)
+                              _buildDownloadSection(
+                                title: "Documento para Política de Saneamento:",
+                                fileName: _politicaSaneamentoFileName,
+                                fileURL: _politicaSaneamentoFileURL,
+                              ),
+                            // Exibe se há Conselho Municipal de Saneamento Básico
+                            _buildReadOnlyYesNo(
+                              "Há Conselho Municipal de Saneamento Básico?",
+                              _haConselhoSaneamento,
+                            ),
+                            // Exibe se o município possui Plano Diretor
+                            _buildReadOnlyYesNo(
+                              "O Município possui Plano Diretor?",
+                              _possuiPlanoDiretor,
+                            ),
+                            // Se possui, exibe o documento para download
+                            if (_possuiPlanoDiretor == true)
+                              _buildDownloadSection(
+                                title: "Documento para Plano Diretor:",
+                                fileName: _planoDiretorFileName,
+                                fileURL: _planoDiretorFileURL,
+                              ),
+                          ],
                         ),
-                      ),
-                      // Exibe se o município possui Política de Saneamento
-                      _buildReadOnlyYesNo(
-                        "O Município possui Política de Saneamento?",
-                        _possuiPoliticaSaneamento,
-                      ),
-                      // Se possui, exibe o documento para download
-                      if (_possuiPoliticaSaneamento == true)
-                        _buildDownloadSection(
-                          title: "Documento para Política de Saneamento:",
-                          fileName: _politicaSaneamentoFileName,
-                          fileURL: _politicaSaneamentoFileURL,
-                        ),
-                      // Exibe se há Conselho Municipal de Saneamento Básico
-                      _buildReadOnlyYesNo(
-                        "Há Conselho Municipal de Saneamento Básico?",
-                        _haConselhoSaneamento,
-                      ),
-                      // Exibe se o município possui Plano Diretor
-                      _buildReadOnlyYesNo(
-                        "O Município possui Plano Diretor?",
-                        _possuiPlanoDiretor,
-                      ),
-                      // Se possui, exibe o documento para download
-                      if (_possuiPlanoDiretor == true)
-                        _buildDownloadSection(
-                          title: "Documento para Plano Diretor:",
-                          fileName: _planoDiretorFileName,
-                          fileURL: _planoDiretorFileURL,
-                        ),
-                    ],
-                  ),
-                ),
+                      )
+                    : _buildEmptyState(),
               ),
       ),
     );
